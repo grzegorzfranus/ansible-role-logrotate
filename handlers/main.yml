@@ -1,0 +1,11 @@
+---
+# =============================================================================
+# Ansible Role: logrotate - Handlers
+# =============================================================================
+# Handlers are used to perform service actions in response to configuration changes.
+# For logrotate configuration, service restarts are not required. This file is
+# kept for consistency and future extensibility.
+#
+# Handler Triggers:
+#   (none) - No handlers are defined for this role currently
+# =============================================================================

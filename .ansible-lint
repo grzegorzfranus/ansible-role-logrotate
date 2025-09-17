@@ -1,0 +1,10 @@
+skip_list: []
+warn_list: []
+parseable: true
+strict: true
+
+profile: min
+
+exclude_paths:
+  - molecule/**
+  - .github/workflows/**

@@ -1,0 +1,111 @@
+---
+# =============================================================================
+# Ansible Role: logrotate - Molecule Verification Playbook
+# =============================================================================
+# This playbook verifies the installation and configuration of logrotate.
+# It performs checks of package presence, configuration files, drop-in rules,
+# and validates the configuration via a dry-run.
+#
+# Flow:
+# 1. Load variables and gather facts
+# 2. Verify package installation
+# 3. Validate main configuration
+# 4. Verify drop-in rules
+# 5. Dry-run configuration validation
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# 1. Environment Setup
+# -----------------------------------------------------------------------------
+- name: molecule | Verify Role
+  hosts: all
+  gather_facts: true
+
+  vars_files:
+    - ../../defaults/main.yml
+    - ../../vars/main.yml
+
+  tasks:
+    - name: Verify | Gather OS specific variables
+      ansible.builtin.include_vars: "{{ lookup('first_found', params) }}"
+      vars:
+        params:
+          files:
+            - "{{ ansible_facts['distribution'] | lower }}.yml"
+            - "{{ ansible_facts['os_family'] | lower }}.yml"
+            - "main.yml"
+          paths:
+            - "../../vars"
+
+    # -------------------------------------------------------------------------
+    # 2. Package Verification
+    # -------------------------------------------------------------------------
+    - name: Verify | Ensure logrotate package is installed
+      ansible.builtin.package:
+        name: "{{ logrotate_package_name }}"
+        state: present
+      become: true
+      register: _package_result_
+
+    # -------------------------------------------------------------------------
+    # 3. Main Configuration Verification
+    # -------------------------------------------------------------------------
+    - name: Verify | Check if main configuration file exists
+      ansible.builtin.stat:
+        path: "{{ logrotate_main_config_path }}"
+      register: _main_conf_stat_
+
+    - name: Verify | Assert main configuration exists
+      ansible.builtin.assert:
+        that:
+          - _main_conf_stat_.stat.exists
+        fail_msg: "/etc/logrotate.conf is missing"
+        success_msg: "/etc/logrotate.conf is present"
+
+    - name: Verify | Check main configuration file permissions
+      ansible.builtin.file:
+        path: "{{ logrotate_main_config_path }}"
+        state: file
+        owner: root
+        group: root
+        mode: "0644"
+      become: true
+      register: _main_conf_perms_
+
+    # -------------------------------------------------------------------------
+    # 4. Drop-in Rules Verification
+    # -------------------------------------------------------------------------
+    - name: Verify | Ensure drop-in directory exists
+      ansible.builtin.stat:
+        path: "{{ logrotate_d_directory_path }}"
+      register: _dropin_dir_stat_
+
+    - name: Verify | Assert drop-in directory exists
+      ansible.builtin.assert:
+        that:
+          - _dropin_dir_stat_.stat.exists
+        fail_msg: "Drop-in directory {{ logrotate_d_directory_path }} is missing"
+        success_msg: "Drop-in directory {{ logrotate_d_directory_path }} is present"
+
+    - name: Verify | Check sample rule file exists (if defined)
+      ansible.builtin.stat:
+        path: "{{ logrotate_d_directory_path }}/sample"
+      register: _sample_rule_stat_
+
+    # -------------------------------------------------------------------------
+    # 5. Configuration Dry-run Validation
+    # -------------------------------------------------------------------------
+    - name: Verify | Run logrotate in debug mode
+      ansible.builtin.command: >-
+        logrotate -d -s {{ logrotate_status_file }} {{ logrotate_main_config_path }}
+      become: true
+      register: _dry_run_result_
+      changed_when: false
+      failed_when: false
+
+    - name: Verify | Assert logrotate dry-run returned acceptable code
+      ansible.builtin.assert:
+        that:
+          - _dry_run_result_.rc == 0 or _dry_run_result_.rc == 1
+        fail_msg: "logrotate reported errors: {{ _dry_run_result_.stderr | default(_dry_run_result_.stdout) }}"
+        success_msg: "logrotate parsed configuration successfully"

@@ -1,0 +1,188 @@
+---
+# =============================================================================
+# Ansible Role: logrotate - Default Variables
+# =============================================================================
+# This file defines default configuration values for system log rotation.
+# These values can be overridden in playbooks or inventory.
+#
+# Sections:
+#   1. General Settings
+#   2. Main Logrotate Configuration
+#   3. Per-Rule Management
+#   4. Role Control
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# 1. General Settings
+# -----------------------------------------------------------------------------
+# Path to logrotate status file used during validation and normal runs
+logrotate_status_file: "/var/lib/logrotate/status"
+
+# Whether this role should manage the main /etc/logrotate.conf file
+logrotate_manage_main_conf: true
+
+# -----------------------------------------------------------------------------
+# 2. Main Logrotate Configuration
+# -----------------------------------------------------------------------------
+# Rotation frequency for global configuration (Options: daily, weekly, monthly)
+logrotate_frequency: "weekly"
+
+# Number of archives to keep
+logrotate_rotate: 4
+
+# Compress rotated logs (gzip)
+logrotate_compress: false
+
+# Use su to set user and group executing rotation for permissions
+logrotate_su_user: "root"
+logrotate_su_group: "adm"
+
+# Ignore missing log files; do not fail
+logrotate_missingok: true
+
+# Do not rotate empty logs
+logrotate_notifempty: true
+
+# Use date-based suffixes for rotated logs
+logrotate_dateext: false
+
+# Format for date suffix appended to rotated logs (effective when dateext is true)
+logrotate_dateformat: "-%Y%m%d"
+
+# Create a new log file after rotation with specific mode and ownership
+# Format: "<mode> <owner> <group>"
+logrotate_create: ""
+
+# Automatically create olddir directories for rules that specify it
+logrotate_olddir_create_enabled: true
+logrotate_olddir_owner: "root"
+logrotate_olddir_group: "root"
+logrotate_olddir_mode: "0755"
+
+# -----------------------------------------------------------------------------
+# 3. Per-Rule Management
+# -----------------------------------------------------------------------------
+# Define application-specific rules to be rendered into /etc/logrotate.d/<name>
+# NOTE: Distribution-provided files are not purged by this role.
+logrotate_rules:
+  # Core system logs (rsyslog-managed)
+  - name: rsyslog
+    paths:
+      - /var/log/syslog
+      - /var/log/mail.log
+      - /var/log/kern.log
+      - /var/log/auth.log
+      - /var/log/user.log
+      - /var/log/cron.log
+    options:
+      weekly: true
+      rotate: 4
+      compress: true
+      delaycompress: false
+      missingok: true
+      notifempty: true
+      su: "root syslog"
+      sharedscripts: true
+      postrotate: |
+        /usr/lib/rsyslog/rsyslog-rotate || true
+    state: present
+
+  # Login accounting (wtmp)
+  - name: wtmp
+    paths:
+      - /var/log/wtmp
+    options:
+      monthly: true
+      rotate: 1
+      create: "0664 root utmp"
+      missingok: true
+      notifempty: true
+      compress: false
+    state: present
+
+  # Failed login accounting (btmp)
+  - name: btmp
+    paths:
+      - /var/log/btmp
+    options:
+      monthly: true
+      rotate: 1
+      create: "0600 root utmp"
+      missingok: true
+      notifempty: true
+      compress: false
+    state: present
+
+  # APT logs
+  - name: apt
+    paths:
+      - /var/log/apt/term.log
+      - /var/log/apt/history.log
+    options:
+      monthly: true
+      rotate: 12
+      compress: false
+      delaycompress: false
+      missingok: true
+      notifempty: true
+      create: "0640 root adm"
+    state: present
+
+  # Unattended upgrades logs
+  - name: unattended-upgrades
+    paths:
+      - /var/log/unattended-upgrades/unattended-upgrades.log
+      - /var/log/unattended-upgrades/unattended-upgrades-shutdown.log
+    options:
+      monthly: true
+      rotate: 6
+      compress: false
+      delaycompress: false
+      missingok: true
+      notifempty: true
+      create: "0640 root adm"
+    state: present
+
+  # DPKG related logs
+  - name: dpkg
+    paths:
+      - /var/log/dpkg.log
+      - /var/log/alternatives.log
+    options:
+      monthly: true
+      rotate: 12
+      compress: false
+      delaycompress: false
+      missingok: true
+      notifempty: true
+      create: "0640 root adm"
+    state: present
+
+# Example structure for custom rules:
+# logrotate_rules:
+#   - name: nginx                         # Rule filename under /etc/logrotate.d
+#     paths:
+#       - /var/log/nginx/*.log            # One or more logfile globs/paths
+#     options:                            # Optional per-rule overrides
+#       rotate: 7                         # Number of archives to keep
+#       daily: true                       # Frequency flags: daily/weekly/monthly (choose one)
+#       compress: true                    # Compress rotated logs
+#       missingok: true                   # Do not fail if missing
+#       notifempty: true                  # Skip empty logs
+#       create: "0640 www-data adm"       # Create mode and owner:group
+#       dateext: true                     # Add date suffix
+#       dateformat: ".%Y-%m-%d"           # Date suffix format (requires dateext)
+#       copytruncate: false               # Copy+truncate instead of move
+#       olddir: "/var/log/nginx/old"      # Move archives to directory
+#       sharedscripts: false              # Group script execution
+#       prerotate: |
+#         /usr/bin/test -x /usr/sbin/nginx && exit 0
+#       postrotate: |
+#         /usr/bin/systemctl kill -s HUP nginx.service || true
+#     state: present                      # present|absent
+
+# -----------------------------------------------------------------------------
+# 4. Role Control
+# -----------------------------------------------------------------------------
+# Control which parts of the role to execute (Options: all, install, configure, logrotate)
+logrotate_role_action: "all"

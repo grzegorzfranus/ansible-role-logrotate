@@ -1,0 +1,34 @@
+---
+# =============================================================================
+# Ansible Role: os_logrotate - Galaxy Metadata
+# =============================================================================
+# This file defines metadata for Ansible Galaxy and documentation generators.
+# =============================================================================
+
+galaxy_info:
+  role_name: logrotate
+  author: Grzegorz Franus
+  namespace: grzegorzfranus
+  description: >
+    Ansible role to install and configure logrotate, managing the main
+    configuration and per-application rules under /etc/logrotate.d.
+  license: Apache-2.0
+  min_ansible_version: "2.14"
+
+  platforms:
+    - name: Debian
+      versions:
+        - "bookworm"
+    - name: Ubuntu
+      versions:
+        - "noble"
+
+  galaxy_tags:
+    - logrotate
+    - logs
+    - system
+    - ubuntu
+    - debian
+    - maintenance
+
+dependencies: []

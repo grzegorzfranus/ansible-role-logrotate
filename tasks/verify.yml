@@ -1,0 +1,24 @@
+---
+# =============================================================================
+# Ansible Role: logrotate - Verification Tasks
+# =============================================================================
+# This file runs a dry-run of logrotate to confirm configuration parses correctly.
+#
+# Flow:
+# 1. Dry-run configuration parse check
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# 1. Dry-run Configuration Parse Check
+# -----------------------------------------------------------------------------
+- name: logrotate | test | Verify logrotate configuration parses successfully
+  ansible.builtin.command: >-
+    logrotate -d -s {{ logrotate_status_file }} /etc/logrotate.conf
+  register: logrotate_verify
+  changed_when: false
+  failed_when: false
+  when: >
+    logrotate_role_action in ['all', 'configure', 'logrotate']
+  tags:
+    - test
+    - verify

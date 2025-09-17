@@ -1,0 +1,24 @@
+---
+# =============================================================================
+# Ansible Role: logrotate - Debian-Specific Variables
+# =============================================================================
+# This file defines variables specific to Debian-based distributions.
+# These values override or supplement the common variables defined in main.yml.
+#
+# Sections:
+#   1. Service Settings
+#   2. File Paths and Permissions
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# 1. Service Settings
+# -----------------------------------------------------------------------------
+# System user and group commonly owning rotated files via rsyslog
+logrotate_rsyslog_su_user: "root"
+logrotate_rsyslog_su_group: "syslog"
+
+# -----------------------------------------------------------------------------
+# 2. File Paths and Permissions
+# -----------------------------------------------------------------------------
+# Path to rsyslog postrotate helper
+logrotate_rsyslog_postrotate_helper_path: "/usr/lib/rsyslog/rsyslog-rotate"

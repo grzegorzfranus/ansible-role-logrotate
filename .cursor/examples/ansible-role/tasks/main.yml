@@ -1,0 +1,120 @@
+---
+# =============================================================================
+# Ansible Role: Chrony - Main Tasks
+# =============================================================================
+# This is the main task file for the Chrony role. It orchestrates the execution
+# of all role components in the correct order. Each task is tagged appropriately
+# to allow for selective execution.
+#
+# Flow:
+# 1. Load OS-specific variables
+# 2. Validate role requirements and variables
+# 3. Check system prerequisites
+# 4. Install Chrony
+# 5. Configure Chrony
+# 6. Setup logrotate (optional)
+# 7. Upgrade if requested
+# 8. Verify configuration (optional)
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# 1. OS-Specific Variables
+# -----------------------------------------------------------------------------
+- name: 📂 Chrony | include_vars | Gather OS specific variables
+  ansible.builtin.include_vars: "{{ lookup('first_found', params) }}"
+  vars:
+    params:
+      files:
+        - "{{ ansible_facts['distribution'] | lower }}_{{ ansible_facts['distribution_version'] | lower }}.yml"
+        - "{{ ansible_facts['distribution'] | lower }}_{{ ansible_facts['distribution_major_version'] | lower }}.yml"
+        - "{{ ansible_facts['distribution'] | lower }}.yml"
+        - "{{ ansible_facts['os_family'] | lower }}_{{ ansible_facts['distribution_version'] | lower }}.yml"
+        - "{{ ansible_facts['os_family'] | lower }}_{{ ansible_facts['distribution_major_version'].split('.')[0] }}.yml"
+        - "{{ ansible_facts['os_family'] | lower }}.yml"
+        - "main.yml"
+      paths:
+        - "{{ role_path }}/vars"
+  tags:
+    - always
+    - setup
+    - init
+
+# -----------------------------------------------------------------------------
+# 2. Variable Validation
+# -----------------------------------------------------------------------------
+- name: 🧪 Chrony | assert | Validate role variables and requirements
+  ansible.builtin.include_tasks: assert.yml
+  run_once: true
+  tags:
+    - always
+    - validate
+    - check
+
+# -----------------------------------------------------------------------------
+# 3. System Prerequisites
+# -----------------------------------------------------------------------------
+- name: 🛠️ Chrony | prerequisites | Verify system prerequisites
+  ansible.builtin.include_tasks: prerequisites.yml
+  when: >
+    chrony_role_action in ['all', 'prerequisites']
+  tags:
+    - setup
+    - prerequisites
+
+# -----------------------------------------------------------------------------
+# 4. Package Installation
+# -----------------------------------------------------------------------------
+- name: 📦 Chrony | install | Install Chrony package
+  ansible.builtin.include_tasks: install.yml
+  when: >
+    chrony_role_action in ['all', 'install']
+  tags:
+    - setup
+    - install
+
+# -----------------------------------------------------------------------------
+# 5. Service Configuration
+# -----------------------------------------------------------------------------
+- name: 🌐 Chrony | configure | Configure Chrony service
+  ansible.builtin.include_tasks: configure.yml
+  when: >
+    chrony_role_action in ['all', 'configure']
+  tags:
+    - setup
+    - configure
+
+# -----------------------------------------------------------------------------
+# 6. Logrotate Configuration (Optional)
+# -----------------------------------------------------------------------------
+- name: 📝 Chrony | logrotate | Configure logrotate for Chrony service
+  ansible.builtin.include_tasks: logrotate.yml
+  when: >
+    chrony_role_action in ['all', 'configure', 'logrotate'] and
+    chrony_configure_logrotate | default(false)
+  tags:
+    - config
+    - logrotate
+
+# -----------------------------------------------------------------------------
+# 7. Package Upgrade
+# -----------------------------------------------------------------------------
+- name: 🔄 Chrony | upgrade | Upgrade Chrony package
+  ansible.builtin.include_tasks: upgrade.yml
+  when: >
+    chrony_role_action in ['upgrade']
+  tags:
+    - upgrade
+    - never
+
+# -----------------------------------------------------------------------------
+# 8. Configuration Verification
+# -----------------------------------------------------------------------------
+- name: 🧪 Chrony | test | Verify time synchronization
+  ansible.builtin.include_tasks: test.yml
+  when: >
+    chrony_role_action in ['all', 'configure', 'logrotate', 'upgrade' ] and
+    chrony_run_test | default(false)
+  tags:
+    - test
+    - verify
+    - check

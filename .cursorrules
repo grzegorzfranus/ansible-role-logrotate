@@ -1,0 +1,47 @@
+# 🎯 Core Development Rules
+
+---
+
+## 🚨 MANDATORY WORKFLOW
+**Before ANY task:**
+1. **📋 Prepare action plan**
+2. **❓ Ask clarifying questions** 
+3. **✅ Get explicit user approval**
+4. **🚫 NEVER start without approval**
+
+---
+
+## 🌍 ENGLISH-ONLY POLICY
+**ALL content MUST be in English:**
+- Code comments & documentation
+- File/directory names
+- Commit messages
+- Variables & functions
+- Error messages
+
+**❌ No exceptions, no mixed languages**
+
+---
+
+## 📝 CHANGELOG MANDATORY
+**Every project needs CHANGELOG.md: with actual dates**
+```markdown
+## [1.0.1] - 2024-03-20
+### Added ✅
+- New feature
+### Fixed 🔧  
+- Bug fix
+### Changed 🔄
+- Modification
+### Removed ❌
+- Deleted feature
+```
+
+---
+
+## 🎯 QUICK CHECKLIST
+**Before starting:** Plan → Questions → Approval  
+**During work:** English + Emojis + Documentation  
+**Before completion:** Update changelog
+
+**Remember: Plan → Approve → Execute → Document** 🔄

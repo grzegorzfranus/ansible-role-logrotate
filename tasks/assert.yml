@@ -1,0 +1,153 @@
+---
+# =============================================================================
+# Ansible Role: logrotate - Variable Assertions
+# =============================================================================
+# This file contains assertions to validate variables used in the logrotate role.
+# Each assertion ensures that variables are defined and have correct types/values.
+# These validations help prevent configuration errors and ensure safe defaults.
+#
+# Flow:
+# 1. General Settings Assertions
+# 2. Per-Rule Structure Assertions
+# 3. Per-Rule Field Assertions
+# 4. Per-Rule Options Type and Format Checks
+# 5. Vars Files Consistency Checks
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# 1. General Settings Assertions
+# -----------------------------------------------------------------------------
+- name: logrotate | assert | Validate general variables
+  ansible.builtin.assert:
+    that:
+      - logrotate_frequency in ['daily', 'weekly', 'monthly']
+      - (logrotate_rotate | int) >= 0
+      - logrotate_compress is boolean
+      - logrotate_missingok is boolean
+      - logrotate_notifempty is boolean
+      - logrotate_dateext is boolean
+      - logrotate_dateformat is string
+      - logrotate_status_file is string and logrotate_status_file is match('^/.+')
+      - logrotate_create is string
+      - logrotate_su_user is string
+      - logrotate_su_group is string
+      - logrotate_olddir_create_enabled is boolean
+      - logrotate_olddir_owner is string
+      - logrotate_olddir_group is string
+      - logrotate_olddir_mode is string and logrotate_olddir_mode is match('^[0-7]{3,4}$')
+      - logrotate_manage_main_conf is boolean
+      - logrotate_role_action in ['all', 'install', 'configure', 'logrotate']
+    fail_msg: >-
+      Invalid general variables. Check frequency, rotate, booleans, absolute status path,
+      create string, su user/group, manage_main_conf, and role_action.
+    success_msg: >-
+      General variables validated: freq={{ logrotate_frequency }}, rotate={{ logrotate_rotate }},
+      compress={{ logrotate_compress }}, dateext={{ logrotate_dateext }}, role_action={{ logrotate_role_action }}
+  tags:
+    - always
+    - validate
+
+# -----------------------------------------------------------------------------
+# 5a. OS/Distro-specific Variables (validated if defined)
+# -----------------------------------------------------------------------------
+- name: logrotate | assert | Validate distro-specific variables (if defined)
+  ansible.builtin.assert:
+    that:
+      - (logrotate_rsyslog_su_user is string) or (logrotate_rsyslog_su_user is not defined)
+      - (logrotate_rsyslog_su_group is string) or (logrotate_rsyslog_su_group is not defined)
+      - (logrotate_rsyslog_postrotate_helper_path is string and logrotate_rsyslog_postrotate_helper_path is match('^/.+')) or (logrotate_rsyslog_postrotate_helper_path is not defined)
+    fail_msg: >-
+      Invalid distro-specific variables. Ensure rsyslog su user/group are strings and helper path is absolute when defined.
+    success_msg: >-
+      Distro-specific variables validated (when defined).
+  tags:
+    - always
+    - validate
+
+# -----------------------------------------------------------------------------
+# 2. Per-Rule Structure Assertions
+# -----------------------------------------------------------------------------
+- name: logrotate | assert | Validate per-rule items structure
+  ansible.builtin.assert:
+    that:
+      - logrotate_rules is iterable
+    fail_msg: "logrotate_rules must be a list. Current value: {{ logrotate_rules | default('undefined') }}"
+    success_msg: "logrotate_rules structure validated (list)"
+  tags:
+    - always
+    - validate
+
+# -----------------------------------------------------------------------------
+# 3. Per-Rule Field Assertions
+# -----------------------------------------------------------------------------
+- name: logrotate | assert | Validate each rule fields
+  ansible.builtin.assert:
+    that:
+      - item.name is string and item.name | length > 0
+      - item.paths is iterable and item.paths | length > 0
+      - (item.state | default('present')) in ['present', 'absent']
+    fail_msg: >-
+      Invalid rule item. Ensure name (string), paths (non-empty list), and state present|absent.
+    success_msg: >-
+      Rule item validated: {{ item.name }} with {{ item.paths | length }} paths
+  loop: "{{ logrotate_rules }}"
+  loop_control:
+    label: "{{ item.name | default('unnamed') }}"
+  when: >
+    logrotate_rules | length > 0
+  tags:
+    - always
+    - validate
+
+# -----------------------------------------------------------------------------
+# 4. Per-Rule Options Type and Format Checks
+# -----------------------------------------------------------------------------
+- name: logrotate | assert | Validate per-rule options types and values
+  ansible.builtin.assert:
+    that:
+      - ('rotate' not in item.options) or (item.options.rotate is number)
+      - ('daily' not in item.options) or (item.options.daily is boolean)
+      - ('weekly' not in item.options) or (item.options.weekly is boolean)
+      - ('monthly' not in item.options) or (item.options.monthly is boolean)
+      - ('compress' not in item.options) or (item.options.compress is boolean)
+      - ('delaycompress' not in item.options) or (item.options.delaycompress is boolean)
+      - ('missingok' not in item.options) or (item.options.missingok is boolean)
+      - ('notifempty' not in item.options) or (item.options.notifempty is boolean)
+      - ('dateext' not in item.options) or (item.options.dateext is boolean)
+      - ('dateformat' not in item.options) or (item.options.dateformat is string)
+      - ('create' not in item.options) or (item.options.create is string)
+      - ('copytruncate' not in item.options) or (item.options.copytruncate is boolean)
+      - ('olddir' not in item.options) or (item.options.olddir is string and item.options.olddir is match('^/.+'))
+      - ('sharedscripts' not in item.options) or (item.options.sharedscripts is boolean)
+      - ('prerotate' not in item.options) or (item.options.prerotate is string)
+      - ('postrotate' not in item.options) or (item.options.postrotate is string)
+      - ('size' not in item.options) or (item.options.size is string)
+      - ('su' not in item.options) or (item.options.su is string)
+    fail_msg: >-
+      Invalid per-rule options in '{{ item.name }}'. Ensure types: rotate(number), *_flags(boolean), paths(string),
+      and absolute paths for olddir.
+    success_msg: >-
+      Per-rule options validated for '{{ item.name }}'
+  loop: "{{ logrotate_rules }}"
+  loop_control:
+    label: "{{ item.name | default('unnamed') }}"
+  when: >
+    logrotate_rules | length > 0 and item.options is defined
+  tags:
+    - always
+    - validate
+
+# -----------------------------------------------------------------------------
+# 5. Vars Files Consistency Checks
+# -----------------------------------------------------------------------------
+- name: logrotate | assert | Validate vars consistency
+  ansible.builtin.assert:
+    that:
+      - logrotate_package_name is string
+      - logrotate_d_directory_path is string and logrotate_d_directory_path is match('^/.+')
+      - logrotate_main_config_path is string and logrotate_main_config_path is match('^/.+')
+    fail_msg: "Invalid vars: package name must be string, paths must be absolute."
+    success_msg: "Vars consistency validated: d_dir={{ logrotate_d_directory_path }}, main={{ logrotate_main_config_path }}"
+  tags:
+    - always
+    - validate

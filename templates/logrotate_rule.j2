@@ -1,0 +1,91 @@
+#jinja2: trim_blocks: True, lstrip_blocks: True
+{{ ansible_managed | comment }}
+
+# Log rotation configuration for {{ item.name }}
+# This template manages the rotation of log files to prevent disk space issues
+# and maintain organized log archives.
+
+# Define log files to rotate
+{% for p in item.paths %}{{ p }}
+{% endfor %}{
+  {% set opts = item.options | default({}) %}
+  {% if opts.daily | default(false) %}
+  # Rotation frequency: daily
+  daily
+  {% elif opts.weekly | default(false) %}
+  # Rotation frequency: weekly
+  weekly
+  {% elif opts.monthly | default(false) %}
+  # Rotation frequency: monthly
+  monthly
+  {% endif %}
+  {% if opts.rotate is defined %}
+  # Number of rotated files to keep
+  rotate {{ opts.rotate }}
+  {% endif %}
+  {% if opts.size is defined %}
+  # Rotate when log reaches size {{ opts.size }}
+  size {{ opts.size }}
+  {% endif %}
+  {% if (opts.compress | default(true)) %}
+  # Compression enabled
+  compress
+  {% else %}
+  nocompress
+  {% endif %}
+  {% if opts.delaycompress | default(false) %}
+  # Delay compression until next rotation
+  delaycompress
+  {% endif %}
+  {% if opts.missingok | default(true) %}
+  # Ignore missing log files
+  missingok
+  {% endif %}
+  {% if opts.notifempty | default(true) %}
+  # Skip empty logs
+  notifempty
+  {% endif %}
+  {% if opts.dateext | default(false) %}
+  # Date extension enabled
+  dateext
+  {% if opts.dateformat is defined %}
+  # Date format: {{ opts.dateformat }}
+  dateformat {{ opts.dateformat }}
+  {% endif %}
+  {% endif %}
+  {% if opts.create is defined %}
+  # Create new file with {{ opts.create }}
+  create {{ opts.create }}
+  {% endif %}
+  {% if opts.su is defined %}
+  # Run scripts as {{ opts.su }}
+  su {{ opts.su }}
+  {% else %}
+  # Run scripts as {{ logrotate_su_user | default('root') }} {{ logrotate_su_group | default('adm') }}
+  su {{ logrotate_su_user | default('root') }} {{ logrotate_su_group | default('adm') }}
+  {% endif %}
+  {% if opts.copytruncate | default(false) %}
+  # Use copytruncate for open descriptors
+  copytruncate
+  {% endif %}
+  {% if opts.olddir is defined %}
+  # Move archives to {{ opts.olddir }}
+  olddir {{ opts.olddir }}
+  {% endif %}
+  {% if opts.sharedscripts | default(false) %}
+  # Run postrotate/prerotate once for all logs
+  sharedscripts
+  {% endif %}
+  {% if opts.prerotate is defined %}
+  # Prerotate script
+  prerotate
+{% for line in (opts.prerotate | string).split('\n') %}    {{ line }}
+{% endfor %}  endscript
+  {% endif %}
+  {% if opts.postrotate is defined %}
+  # Postrotate script
+  postrotate
+{% for line in (opts.postrotate | string).split('\n') %}    {{ line }}
+{% endfor %}  endscript
+  {% endif %}
+}
