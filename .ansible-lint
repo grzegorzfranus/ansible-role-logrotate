@@ -1,8 +1,5 @@
-skip_list: []
-warn_list: []
-strict: true
-
-profile: min
+---
+profile: shared
 
 exclude_paths:
   - molecule/**

@@ -11,7 +11,7 @@
 # -----------------------------------------------------------------------------
 # 1. Main Configuration Template Deployment
 # -----------------------------------------------------------------------------
-- name: logrotate | configure | Render main /etc/logrotate.conf
+- name: Logrotate | configure | Render main /etc/logrotate.conf
   ansible.builtin.template:
     src: "logrotate.conf.j2"
     dest: "/etc/logrotate.conf"

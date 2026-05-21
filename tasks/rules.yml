@@ -17,7 +17,7 @@
 # -----------------------------------------------------------------------------
 # 1. Ensure olddir exists (optional)
 # -----------------------------------------------------------------------------
-- name: logrotate | rules | Stat olddir (when specified)
+- name: Logrotate | rules | Stat olddir (when specified)
   ansible.builtin.stat:
     path: "{{ rule.options.olddir }}"
   register: logrotate_rule_olddir_stat
@@ -29,7 +29,7 @@
     - config
     - logrotate
 
-- name: logrotate | rules | Create olddir when missing
+- name: Logrotate | rules | Create olddir when missing
   ansible.builtin.file:
     path: "{{ rule.options.olddir }}"
     state: directory
@@ -50,7 +50,7 @@
 # -----------------------------------------------------------------------------
 # 2. Render present rule
 # -----------------------------------------------------------------------------
-- name: logrotate | rules | Render rule (present)
+- name: Logrotate | rules | Render rule (present)
   ansible.builtin.template:
     src: "logrotate_rule.j2"
     dest: "/etc/logrotate.d/{{ rule.name }}"
@@ -69,7 +69,7 @@
 # -----------------------------------------------------------------------------
 # 3. Remove absent rule
 # -----------------------------------------------------------------------------
-- name: logrotate | rules | Remove rule (absent)
+- name: Logrotate | rules | Remove rule (absent)
   ansible.builtin.file:
     path: "/etc/logrotate.d/{{ rule.name }}"
     state: absent
