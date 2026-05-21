@@ -20,7 +20,7 @@
 # -----------------------------------------------------------------------------
 # 1. OS-Specific Variables
 # -----------------------------------------------------------------------------
-- name: logrotate | include_vars | Gather OS specific variables
+- name: Logrotate | include_vars | Gather OS specific variables
   ansible.builtin.include_vars: "{{ lookup('first_found', params) }}"
   vars:
     params:
@@ -38,7 +38,7 @@
 # -----------------------------------------------------------------------------
 # 2. Variable Validation
 # -----------------------------------------------------------------------------
-- name: logrotate | assert | Validate role variables and requirements
+- name: Logrotate | assert | Validate role variables and requirements
   ansible.builtin.include_tasks: assert.yml
   run_once: true
   tags:
@@ -48,7 +48,7 @@
 # -----------------------------------------------------------------------------
 # 3. Package Installation
 # -----------------------------------------------------------------------------
-- name: logrotate | install | Install dependencies
+- name: Logrotate | install | Install dependencies
   ansible.builtin.include_tasks: install.yml
   when: >
     logrotate_role_action in ['all', 'install']
@@ -59,7 +59,7 @@
 # -----------------------------------------------------------------------------
 # 4. Main Configuration
 # -----------------------------------------------------------------------------
-- name: logrotate | configure | Configure main logrotate.conf
+- name: Logrotate | configure | Configure main logrotate.conf
   ansible.builtin.include_tasks: configure.yml
   when: >
     logrotate_role_action in ['all', 'configure'] and
@@ -72,7 +72,7 @@
 # -----------------------------------------------------------------------------
 # 5. Drop-in Rules Management (Optional)
 # -----------------------------------------------------------------------------
-- name: logrotate | rules | Apply present rules
+- name: Logrotate | rules | Apply present rules
   ansible.builtin.include_tasks: rules.yml
   vars:
     rule: "{{ item }}"
@@ -87,7 +87,7 @@
     - config
     - logrotate
 
-- name: logrotate | rules | Remove absent rules
+- name: Logrotate | rules | Remove absent rules
   ansible.builtin.include_tasks: rules.yml
   vars:
     rule: "{{ item }}"
@@ -104,7 +104,7 @@
 # -----------------------------------------------------------------------------
 # 6. Configuration Verification (Optional)
 # -----------------------------------------------------------------------------
-- name: logrotate | verify | Verify configuration (dry-run)
+- name: Logrotate | verify | Verify configuration (dry-run)
   ansible.builtin.include_tasks: verify.yml
   when: >
     logrotate_role_action in ['all', 'configure', 'logrotate']

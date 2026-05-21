@@ -11,7 +11,7 @@
 # -----------------------------------------------------------------------------
 # 1. Package Installation
 # -----------------------------------------------------------------------------
-- name: logrotate | install | Ensure logrotate present
+- name: Logrotate | install | Ensure logrotate present
   ansible.builtin.package:
     name: logrotate
     state: present

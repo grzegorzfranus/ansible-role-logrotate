@@ -11,7 +11,7 @@
 # -----------------------------------------------------------------------------
 # 1. Dry-run Configuration Parse Check
 # -----------------------------------------------------------------------------
-- name: logrotate | test | Verify logrotate configuration parses successfully
+- name: Logrotate | test | Verify logrotate configuration parses successfully
   ansible.builtin.command: >-
     logrotate -d -s {{ logrotate_status_file }} /etc/logrotate.conf
   register: logrotate_verify

@@ -17,7 +17,7 @@
 # -----------------------------------------------------------------------------
 # 1. General Settings Assertions
 # -----------------------------------------------------------------------------
-- name: logrotate | assert | Validate general variables
+- name: Logrotate | assert | Validate general variables
   ansible.builtin.assert:
     that:
       - logrotate_frequency in ['daily', 'weekly', 'monthly']
@@ -50,7 +50,7 @@
 # -----------------------------------------------------------------------------
 # 5a. OS/Distro-specific Variables (validated if defined)
 # -----------------------------------------------------------------------------
-- name: logrotate | assert | Validate distro-specific variables (if defined)
+- name: Logrotate | assert | Validate distro-specific variables (if defined)
   ansible.builtin.assert:
     that:
       - (logrotate_rsyslog_su_user is string) or (logrotate_rsyslog_su_user is not defined)
@@ -67,7 +67,7 @@
 # -----------------------------------------------------------------------------
 # 2. Per-Rule Structure Assertions
 # -----------------------------------------------------------------------------
-- name: logrotate | assert | Validate per-rule items structure
+- name: Logrotate | assert | Validate per-rule items structure
   ansible.builtin.assert:
     that:
       - logrotate_rules is iterable
@@ -80,7 +80,7 @@
 # -----------------------------------------------------------------------------
 # 3. Per-Rule Field Assertions
 # -----------------------------------------------------------------------------
-- name: logrotate | assert | Validate each rule fields
+- name: Logrotate | assert | Validate each rule fields
   ansible.builtin.assert:
     that:
       - item.name is string and item.name | length > 0
@@ -102,7 +102,7 @@
 # -----------------------------------------------------------------------------
 # 4. Per-Rule Options Type and Format Checks
 # -----------------------------------------------------------------------------
-- name: logrotate | assert | Validate per-rule options types and values
+- name: Logrotate | assert | Validate per-rule options types and values
   ansible.builtin.assert:
     that:
       - ('rotate' not in item.options) or (item.options.rotate is number)
@@ -140,7 +140,7 @@
 # -----------------------------------------------------------------------------
 # 5. Vars Files Consistency Checks
 # -----------------------------------------------------------------------------
-- name: logrotate | assert | Validate vars consistency
+- name: Logrotate | assert | Validate vars consistency
   ansible.builtin.assert:
     that:
       - logrotate_package_name is string
