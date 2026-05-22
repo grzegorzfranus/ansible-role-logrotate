@@ -1,20 +1,22 @@
-# Ansible/Molecule
-.molecule/
-.cache/
-*.retry
-.ansible/
+# ignore visual studio code things, and intelliJ
+.vscode
+.idea
+.cursor
 
-# Python
-__pycache__/
-*.pyc
-.venv/
-.venv*/
-.tox/
-.pytest_cache/
+# ignore Python Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
 
-# macOS
+# ignore cache
+.cache
+
+# ignore Mac
 .DS_Store
 
-# Editors
-.idea/
-.vscode/
+# Asible
+.ansible/
