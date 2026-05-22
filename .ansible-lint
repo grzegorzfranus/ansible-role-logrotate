@@ -1,4 +1,7 @@
 ---
+skip_list:
+  - role-name
+
 profile: shared
 
 exclude_paths:
