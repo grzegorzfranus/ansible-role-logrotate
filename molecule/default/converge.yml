@@ -72,4 +72,4 @@
         state: present
 
   roles:
-    - role: grzegorzfranus.logrotate
+    - role: ../../..
