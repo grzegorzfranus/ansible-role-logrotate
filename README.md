@@ -12,6 +12,19 @@ This Ansible role installs and configures logrotate, managing the main `/etc/log
 - Manage drop-in rules with templating (`/etc/logrotate.d/*`)
 - Idempotent, lint-clean, Molecule tested
 
+## 📌 Role Properties
+
+| Property | Value | Description |
+|----------|-------|-------------|
+| **Idempotent** | ✅ Yes | Running the role multiple times with the same parameters produces the same result. |
+| **Atomic** | ❌ No | The role can be partially applied. A failure mid-execution may leave the system in an intermediate state. |
+| **Check Mode** | ✅ Supported | All tasks support check mode. Package installation and configuration writes are simulated. |
+| **Diff Mode** | ✅ Supported | Template tasks support diff mode for change preview. |
+
+## 📤 Role Output
+
+This role does not set any public output facts.
+
 ## 🎯 Architecture
 - Tasks: include_vars → assert → install → configure → manage rules → verify
 - Templates: `logrotate.conf.j2`, `logrotate_rule.j2`
@@ -161,7 +174,7 @@ logrotate_rules:
 logrotate -d -s /var/lib/logrotate/status /etc/logrotate.conf
 ```
 
-## 📁 Project Directory Structure
+## 📁 File Structure
 
 ```
 ansible-role-logrotate/
