@@ -147,25 +147,25 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: "Evaluate results"
-          run: |
-            echo "Branch Name Lint: ${{ needs.branch-name-lint.result }}"
-            echo "PR Title Lint: ${{ needs.pr-title-lint.result }}"
-            echo "CI: ${{ needs.ci.result }}"
+        run: |
+          echo "Branch Name Lint: ${{ needs.branch-name-lint.result }}"
+          echo "PR Title Lint: ${{ needs.pr-title-lint.result }}"
+          echo "CI: ${{ needs.ci.result }}"
 
-            if [[ "${{ needs.branch-name-lint.result }}" != "success" ]]; then
-              echo "::error::Branch Name Lint failed"
-              exit 1
-            fi
+          if [[ "${{ needs.branch-name-lint.result }}" != "success" ]]; then
+            echo "::error::Branch Name Lint failed"
+            exit 1
+          fi
 
-            if [[ "${{ needs.pr-title-lint.result }}" != "success" ]]; then
-              echo "::error::PR Title Lint failed"
-              exit 1
-            fi
+          if [[ "${{ needs.pr-title-lint.result }}" != "success" ]]; then
+            echo "::error::PR Title Lint failed"
+            exit 1
+          fi
 
-            if [[ "${{ needs.ci.result }}" != "success" ]]; then
-              echo "::error::CI pipeline failed"
-              exit 1
-            fi
+          if [[ "${{ needs.ci.result }}" != "success" ]]; then
+            echo "::error::CI pipeline failed"
+            exit 1
+          fi
 
-            echo "All checks passed"
+          echo "All checks passed"
 
