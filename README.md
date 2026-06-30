@@ -1,68 +1,76 @@
 # Ansible Role: logrotate
 
 | Source | Version | CI | License |
-|-------|---------|----|---------|
-|[![Source Code](https://img.shields.io/badge/source-github-blue.svg)](https://github.com/grzegorzfranus/ansible-role-logrotate)|[![Version](https://img.shields.io/github/v/release/grzegorzfranus/ansible-role-logrotate)](https://github.com/grzegorzfranus/ansible-role-logrotate/releases)|[![CI](https://github.com/grzegorzfranus/ansible-role-logrotate/actions/workflows/ci.yml/badge.svg)](https://github.com/grzegorzfranus/ansible-role-logrotate/actions/workflows/ci.yml)|[![Repository License](https://img.shields.io/badge/license-apache2.0-brightgreen.svg)](LICENSE)|
+|--------|---------|----|---------|
+| [![Source Code](https://img.shields.io/badge/source-github-blue.svg)](https://github.com/grzegorzfranus/ansible-role-logrotate) | [![Version](https://img.shields.io/github/v/release/grzegorzfranus/ansible-role-logrotate)](https://github.com/grzegorzfranus/ansible-role-logrotate/releases) | [![CI](https://github.com/grzegorzfranus/ansible-role-logrotate/actions/workflows/ci.yml/badge.svg)](https://github.com/grzegorzfranus/ansible-role-logrotate/actions/workflows/ci.yml) | [![Repository License](https://img.shields.io/badge/license-apache2.0-brightgreen.svg)](LICENSE) |
 
 This Ansible role installs and configures logrotate, managing the main `/etc/logrotate.conf` and application-specific rules under `/etc/logrotate.d/`. It provides safe defaults, validations, and Molecule coverage for Debian-based systems.
 
 ## ✨ Features
-- Install and ensure `logrotate` is present
-- Manage main configuration via Jinja2 with validation
-- Manage drop-in rules with templating (`/etc/logrotate.d/*`)
-- Idempotent, lint-clean, Molecule tested
 
-## 📌 Role Properties
-
-| Property | Value | Description |
-|----------|-------|-------------|
-| **Idempotent** | ✅ Yes | Running the role multiple times with the same parameters produces the same result. |
-| **Atomic** | ❌ No | The role can be partially applied. A failure mid-execution may leave the system in an intermediate state. |
-| **Check Mode** | ✅ Supported | All tasks support check mode. Package installation and configuration writes are simulated. |
-| **Diff Mode** | ✅ Supported | Template tasks support diff mode for change preview. |
-
-## 📤 Role Output
-
-This role does not set any public output facts.
+- 🔄 **Log Rotation Management**: Install and ensure `logrotate` is present.
+- 🔧 **Main Configuration**: Manage `/etc/logrotate.conf` via Jinja2 with validation.
+- 📁 **Drop-in Rules**: Manage application-specific rules under `/etc/logrotate.d/*`.
+- 🧪 **Container Testing**: Full Molecule test suite for CI/CD integration.
+- 🛡️ **Idempotent & Secure**: Safe defaults, validations, and clean lint execution.
 
 ## 🎯 Architecture
-- Tasks: include_vars → assert → install → configure → manage rules → verify
-- Templates: `logrotate.conf.j2`, `logrotate_rule.j2`
+
+The role provides a complete log rotation management layout:
+
+- **Main Configuration**: Renders global options to `/etc/logrotate.conf` with validation.
+- **Drop-in Rules**: Renders per-application configurations to `/etc/logrotate.d/` directory.
+
+```
+Config Vars → main.yml → install logrotate → template /etc/logrotate.conf → template /etc/logrotate.d/*
+```
 
 ## 📋 Requirements
+
+- **Ansible**: 2.14 or higher
+- **Python**: 3.8 or higher on target hosts
+- **Privileges**: sudo/root access on target hosts
+
 ### Supported operating systems
+List of officially supported operating systems for this role:
+
 | OS Family | Version | Status |
-|-----------|---------|--------|
-| Ubuntu | 24.04 (Noble) | ✓ |
-| Debian | 12 (Bookworm) | ✓ |
-
-### Ansible version
-Ansible >= 2.14
-
-### Python version
-Python >= 3.8
+|-----------|---------|---------|
+| Ubuntu | 24.04 (Noble) | ![✓](https://img.shields.io/badge/✓-brightgreen.svg) |
+| Debian | 12 (Bookworm) | ![✓](https://img.shields.io/badge/✓-brightgreen.svg) |
 
 ### Setup module
-This role relies on gathered facts. If the Setup module is disabled, ensure equivalent facts are provided.
+
+The role uses facts gathered by Ansible on the remote host. If you disable the Setup module in your playbook, ensure equivalent facts are provided.
 
 ### Root access
+
 Root privileges are required for managing files under `/etc` and installing packages.
 
 ## 🚀 Quick Start
-Minimal playbook:
+
+### 1. Basic Setup
+
 ```yaml
+---
 - hosts: all
   become: true
   roles:
     - role: grzegorzfranus.logrotate
 ```
-Run:
+
+### 2. Run the playbook
+
 ```bash
 ansible-playbook -i inventory playbook.yml
 ```
 
 ## ⚙️ Configuration
+
 ### Default Configuration
+
+The role comes with production-ready defaults:
+
 ```yaml
 logrotate_frequency: "weekly"
 logrotate_rotate: 4
@@ -84,6 +92,9 @@ logrotate_rules: []
 ```
 
 ### Advanced Configuration
+
+Customize rules for specific applications (e.g. Nginx):
+
 ```yaml
 logrotate_rules:
   - name: nginx
@@ -102,6 +113,7 @@ logrotate_rules:
 ## 📊 Variables
 
 ### General Options
+
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `logrotate_status_file` | Path to logrotate state file used for validation and runs | `/var/lib/logrotate/status` |
@@ -123,6 +135,7 @@ logrotate_rules:
 | `logrotate_olddir_mode` | Mode for auto-created `olddir` | `"0755"` |
 
 ### Per-rule Options (`logrotate_rules[].options`)
+
 | Option | Description | Default |
 |--------|-------------|---------|
 | `rotate` | Number of archives to keep for this rule | `-` |
@@ -143,6 +156,7 @@ logrotate_rules:
 | `su` | `user group` used during rotation | `-` |
 
 ### Per-rule Item Fields (`logrotate_rules[]`)
+
 | Field | Description | Default |
 |-------|-------------|---------|
 | `name` | Rule file name under `/etc/logrotate.d/` | required |
@@ -151,39 +165,103 @@ logrotate_rules:
 | `state` | Rule state (`present` or `absent`) | `present` |
 
 ### Role Control
+
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `logrotate_role_action` | Which parts of the role to run (`all`, `install`, `configure`, `logrotate`) | `"all"` |
 
 ### Paths and Package (constants)
+
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `logrotate_package_name` | Package name for logrotate | `"logrotate"` |
 | `logrotate_d_directory_path` | Directory for drop-in rules | `/etc/logrotate.d` |
 | `logrotate_main_config_path` | Path to main configuration file | `/etc/logrotate.conf` |
 
+## 📌 Role Properties
+
+| Property | Value | Description |
+|----------|-------|-------------|
+| **Idempotent** | ✅ Yes | Running the role multiple times with the same parameters produces the same result. |
+| **Atomic** | ❌ No | The role can be partially applied. A failure mid-execution may leave the system in an intermediate state. |
+| **Check Mode** | ✅ Supported | All tasks support check mode. Package installation and configuration writes are simulated. |
+| **Diff Mode** | ✅ Supported | Template tasks support diff mode for change preview. |
+
+## 📤 Role Output
+
+This role does not set any public output facts. All internal facts use the `__logrotate_` prefix.
+
 ## 🔍 Verification
-- The role runs `logrotate -d -s <status> /etc/logrotate.conf` to validate configuration.
+
+After deployment, verify that logrotate is configured correctly:
+
+```bash
+# Run logrotate in debug mode to check configuration
+sudo logrotate -d /etc/logrotate.conf
+```
 
 ## 🛡️ Security Features
-- Secure defaults; no secrets handled by the role
+
+- ✅ **Secure Default Configuration**: Minimal attack surface and secure default file permissions.
+- ✅ **Configuration Validation**: Automatic syntax verification is performed using `logrotate -d` before finalizing changes.
+
+### Uninstall
+
+To remove logrotate from a host, run standard package uninstall commands or override variables to remove:
+
+```yaml
+# Standard package removal configuration if needed
+```
+
+### Roll-back Capabilities
+
+Configuration files are backed up automatically using Ansible's `backup: true` directive. If you need to revert to a previous state:
+
+1. Restore the configuration files from the `.bak` timestamps created in the `/etc/` directory.
+2. Verify the configuration again in debug mode.
+
+## 🔒 Security considerations
+
+- Ensure logrotate configuration files under `/etc/logrotate.d/` have secure permissions (managed automatically by this role).
+- Avoid managing log files in user-writable directories without setting the `su` option.
+
+## 🧪 Check mode behavior
+
+- Validation and dry-run syntax checks run normally in Check Mode.
+- Mutating package installations and configuration writes are safely simulated.
+
+## 🏷️ Tags usage
+
+- Use `--tags` to run selective parts of the role: `always`, `setup`, `init`, `validate`, `requirements`, `install`, `configure`, `config`, `logrotate`, `upgrade`, `test`, `verify`.
+
+## 🧰 Repository management
+
+- This role relies on default OS package repositories to install logrotate. It does not configure custom upstream repository sources directly.
 
 ## 🔧 Troubleshooting
-- Validate configuration:
+
+Validate configuration via debug:
+
 ```bash
-logrotate -d -s /var/lib/logrotate/status /etc/logrotate.conf
+sudo logrotate -d -s /var/lib/logrotate/status /etc/logrotate.conf
 ```
 
 ## 📁 File Structure
 
 ```
 ansible-role-logrotate/
-├── .github/                  # GitHub Actions workflows
-│   └── workflows/           # CI/CD automation
-│       ├── ci.yml           # CI pipeline (reusable ansible-ci.yml)
-│       └── release.yml      # Release Please + Galaxy publish
-├── .release-please-manifest.json # Release Please version manifest
-├── release-please-config.json # Release Please configuration
+├── .github/
+│   ├── ISSUE_TEMPLATE/                # Issue templates for bug, feature, task
+│   │   ├── bug_report.yml
+│   │   ├── config.yml
+│   │   ├── feature_request.yml
+│   │   └── task.yml
+│   ├── PULL_REQUEST_TEMPLATE/         # Pull request description template
+│   │   └── pull_request_template.md
+│   ├── workflows/
+│   │   ├── ci.yml                     # CI pipeline
+│   │   └── release.yml                # Release Please + Galaxy publish
+│   └── dependabot.yml                 # Dependabot configuration for GitHub Actions
 ├── defaults/
 │   └── main.yml              # Default variables
 ├── handlers/
@@ -213,68 +291,51 @@ ansible-role-logrotate/
 ```
 
 ## 🏷️ Tags
-- `always` - Tasks that always run (variable loading, validation)
-- `setup` - OS variables, installation, and configuration setup
-- `init` - Initial setup tasks
-- `validate` - Variable validation tasks
-- `requirements` - System requirements and pre-checks
-- `install` - Package installation tasks
-- `configure` - Main configuration tasks
-- `config` - Configuration-related tasks
-- `logrotate` - Management of `/etc/logrotate.d` rules
-- `upgrade` - Upgrade tasks (if implemented)
-- `test` - Testing tasks
-- `verify` - Verification tasks (dry-run)
 
-## Example Playbook
+All tags are prefixed with `logrotate_` where possible to avoid collisions.
+
+| Tag | Description |
+|-----|-------------|
+| `always` | Tasks that always run (variable loading, validation) |
+| `setup` | OS variables, installation, and configuration setup |
+| `init` | Initial setup tasks |
+| `validate` | Variable validation tasks |
+| `requirements` | System requirements and pre-checks |
+| `install` | Package installation tasks |
+| `configure` | Main configuration tasks |
+| `config` | Configuration-related tasks |
+| `logrotate` | Management of `/etc/logrotate.d` rules |
+| `upgrade` | Upgrade tasks (if implemented) |
+| `test` | Testing tasks |
+| `verify` | Verification tasks (dry-run) |
+
+## Example Playbooks
+
 ```yaml
+---
 - hosts: all
   become: true
   roles:
     - role: grzegorzfranus.logrotate
+      vars:
+        logrotate_frequency: "daily"
+        logrotate_rotate: 7
 ```
 
-## CI/CD Pipeline
-
-### CI Pipeline
-
-Runs on every Pull Request via centralized reusable workflow:
-
-1. **Branch Name Lint** — enforces source branch naming conventions (`feature/`, `bugfix/`, etc.)
-2. **PR Title Lint** — enforces Conventional Commits naming conventions on PR titles
-3. **YAML Lint** — validates all YAML files
-4. **Ansible Lint** — enforces best practices and guidelines compliance
-5. **Security Scan** — TruffleHog secret detection
-6. **Molecule Tests** — matrix across Ubuntu 24.04 and Debian 12
-7. **Merge Check** — aggregated status check for branch protection
-
-### Release & Publish
-
-Automated via [Release Please](https://github.com/googleapis/release-please):
-
-1. Merge to `main` → Release Please creates a Release PR with changelog
-2. Merge Release PR → creates Git tag + GitHub Release
-3. Galaxy publish triggers automatically on release using centralized action
-
-## Contributing
+## 🤝 Contributing
 
 Contributions, bug reports, and feature requests are welcome!
 
 - Fork the repository and create your branch from `main`
-- Use [Conventional Commits](https://www.conventionalcommits.org/) for commit messages:
-  - `feat:` — new features (minor version bump)
-  - `fix:` — bug fixes (patch version bump)
-  - `docs:` — documentation changes
-  - `refactor:` — code refactoring
-  - `test:` — test additions
-  - `ci:` — CI/CD changes
-  - `chore:` — maintenance tasks
-- Use branch naming convention: `feature/`, `bugfix/`, `hotfix/`, `docs/`, `refactor/`, `test/`, `chore/`, `ci/`
+- Use [Conventional Commits](https://www.conventionalcommits.org/) for commit messages
 - Ensure your code passes all CI checks (YAML lint, Ansible lint, Molecule tests)
-- Submit a pull request describing your changes
+- Submit a pull request describing your changes (a template is available under `.github/PULL_REQUEST_TEMPLATE/pull_request_template.md` to help structure your PR description)
+- For major changes, please open an issue first to discuss what you would like to change (issue templates for bug reports, feature requests, and tasks are available under `.github/ISSUE_TEMPLATE/`)
 
 ## 📝 License
+
 This project is licensed under the Apache-2.0 License - see the LICENSE file for details.
 
 ## 👥 Author Information
+
 This role was created by [Grzegorz Franus](https://github.com/grzegorzfranus).
