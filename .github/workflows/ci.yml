@@ -132,7 +132,7 @@ jobs:
   # ================================================================
   ci:
     needs: [branch-name-lint, pr-title-lint]
-    uses: grzegorzfranus/github-actions-workflows/.github/workflows/ansible-ci.yml@main
+    uses: grzegorzfranus/github-workflows/.github/workflows/ansible-ci.yml@main
     with:
       molecule-distros: '["ubuntu2404", "debian12"]'
 
@@ -140,32 +140,32 @@ jobs:
   # 3. MERGE CHECK — Caller-level gate for branch protection
   # ================================================================
   merge-check:
-    name: "Merge Check"
+    name: "Merge Check Gate"
     needs: [branch-name-lint, pr-title-lint, ci]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - name: "Evaluate results"
-        run: |
-          echo "Branch Name Lint: ${{ needs.branch-name-lint.result }}"
-          echo "PR Title Lint: ${{ needs.pr-title-lint.result }}"
-          echo "CI: ${{ needs.ci.result }}"
+          run: |
+            echo "Branch Name Lint: ${{ needs.branch-name-lint.result }}"
+            echo "PR Title Lint: ${{ needs.pr-title-lint.result }}"
+            echo "CI: ${{ needs.ci.result }}"
 
-          if [[ "${{ needs.branch-name-lint.result }}" != "success" ]]; then
-            echo "::error::Branch Name Lint failed"
-            exit 1
-          fi
+            if [[ "${{ needs.branch-name-lint.result }}" != "success" ]]; then
+              echo "::error::Branch Name Lint failed"
+              exit 1
+            fi
 
-          if [[ "${{ needs.pr-title-lint.result }}" != "success" ]]; then
-            echo "::error::PR Title Lint failed"
-            exit 1
-          fi
+            if [[ "${{ needs.pr-title-lint.result }}" != "success" ]]; then
+              echo "::error::PR Title Lint failed"
+              exit 1
+            fi
 
-          if [[ "${{ needs.ci.result }}" != "success" ]]; then
-            echo "::error::CI pipeline failed"
-            exit 1
-          fi
+            if [[ "${{ needs.ci.result }}" != "success" ]]; then
+              echo "::error::CI pipeline failed"
+              exit 1
+            fi
 
-          echo "All checks passed"
+            echo "All checks passed"
 
