@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.4](https://github.com/grzegorzfranus/ansible-role-logrotate/compare/v1.1.3...v1.1.4) (2026-07-21)
+
+
+### Bug Fixes
+
+* **14:** correct release workflow reusable workflow invocation ([#15](https://github.com/grzegorzfranus/ansible-role-logrotate/issues/15)) ([23fcfe3](https://github.com/grzegorzfranus/ansible-role-logrotate/commit/23fcfe3975dd30556a05039885d37315a61e7f61))
+
+
+### CI/CD
+
+* **11:** upgrade github workflows to v3.0.1 and update documentation ([#12](https://github.com/grzegorzfranus/ansible-role-logrotate/issues/12)) ([55029c4](https://github.com/grzegorzfranus/ansible-role-logrotate/commit/55029c4d3257ee994c34a01cc1da7b2cc2538b78))
+
 ## [1.1.3](https://github.com/grzegorzfranus/ansible-role-logrotate/compare/v1.1.2...v1.1.3) (2026-06-30)
 
 
