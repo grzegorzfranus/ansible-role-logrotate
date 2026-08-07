@@ -522,11 +522,26 @@ Prior to version 2.0.0, this role included six pre-configured drop-in rules by d
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please follow these guidelines when submitting changes:
+Contributions, bug reports, and feature requests are welcome!
 
-1. **Branch Naming Convention**: Name feature branches using standard prefixes: `feature/`, `bugfix/`, `fix/`, `hotfix/`, `release/`, `chore/`, `docs/`, `refactor/`, `test/`, `build/`, `ci/`, `perf/`, `revert/`. Example: `refactor/align-with-ansible-standards`.
-2. **Conventional Commits**: Format commit messages using standard prefixes: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`.
-3. **Local Quality Gates**: Run `yamllint .`, `ansible-lint`, and `molecule test` locally before submitting a Pull Request.
+- Fork the repository and create your branch from `main`
+- Use [Conventional Commits](https://www.conventionalcommits.org/) for commit messages:
+  - `feat:` — new features
+  - `fix:` — bug fixes
+  - `refactor:` — code refactoring
+  - `docs:` — documentation changes
+  - `ci:` — CI/CD pipeline updates
+  - `build:` — dependency and build configuration updates
+  - `chore:` — maintenance tasks
+  - `test:` — test additions or corrections
+  - `perf:` — performance improvements
+  - `revert:` — code reverts
+  - `style:` — code formatting and style
+- Use branch naming convention: `feature/`, `bugfix/`, `fix/`, `hotfix/`, `release/`, `chore/`, `docs/`, `refactor/`, `test/`, `build/`, `ci/`, `perf/`, `revert/`
+- Ensure your code passes all CI checks (YAML lint, Ansible lint, Molecule tests)
+- Centralized workflows from [github-workflows](https://github.com/grzegorzfranus/github-workflows) are used to run CI/CD pipelines
+- Submit a pull request describing your changes (a template is available under `.github/PULL_REQUEST_TEMPLATE/pull_request_template.md` to help structure your PR description)
+- For major changes, please open an issue first to discuss what you would like to change (issue templates for bug reports, feature requests, and tasks are available under `.github/ISSUE_TEMPLATE/`)
 
 ## 📝 License
 
