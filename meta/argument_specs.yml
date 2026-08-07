@@ -1,0 +1,175 @@
+---
+# =============================================================================
+# Ansible Role: Logrotate - Argument Specifications
+# =============================================================================
+# Declarative type and choice validation. Runtime-only checks (regex patterns,
+# cross-field consistency) live in tasks/assert.yml.
+# =============================================================================
+argument_specs:
+  main:
+    short_description: Install and configure logrotate with global and per-application rules
+    description:
+      - Installs the logrotate package via native package management.
+      - Renders the main /etc/logrotate.conf from a validated template.
+      - Manages per-application drop-in rules under /etc/logrotate.d.
+    options:
+      logrotate_status_file:
+        description: "Path to logrotate status file used for validation and normal execution runs."
+        type: str
+        default: "/var/lib/logrotate/status"
+      logrotate_manage_main_conf:
+        description: "Whether this role should manage the main /etc/logrotate.conf configuration file."
+        type: bool
+        default: true
+      logrotate_frequency:
+        description: "Global log rotation frequency for main configuration."
+        type: str
+        default: "weekly"
+        choices:
+          - daily
+          - weekly
+          - monthly
+      logrotate_rotate:
+        description: "Number of rotated log archive files to keep."
+        type: int
+        default: 4
+      logrotate_compress:
+        description: "Whether to compress rotated log files using gzip."
+        type: bool
+        default: false
+      logrotate_missingok:
+        description: "Do not issue error if log file is missing."
+        type: bool
+        default: true
+      logrotate_notifempty:
+        description: "Do not rotate log file if it is empty."
+        type: bool
+        default: true
+      logrotate_dateext:
+        description: "Use date format suffix for rotated log archives."
+        type: bool
+        default: false
+      logrotate_dateformat:
+        description: "Date suffix format appended to rotated log files when dateext is enabled."
+        type: str
+        default: "-%Y%m%d"
+      logrotate_create:
+        description: "Creation mode, owner, and group for new empty log files after rotation."
+        type: str
+        default: ""
+      logrotate_su_user:
+        description: "System user executing rotation scripts via su."
+        type: str
+        default: "root"
+      logrotate_su_group:
+        description: "System group executing rotation scripts via su."
+        type: str
+        default: "adm"
+      logrotate_olddir_create_enabled:
+        description: "Automatically create target olddir directory when specified in rules."
+        type: bool
+        default: true
+      logrotate_olddir_owner:
+        description: "Owner user for auto-created olddir directories."
+        type: str
+        default: "root"
+      logrotate_olddir_group:
+        description: "Owner group for auto-created olddir directories."
+        type: str
+        default: "root"
+      logrotate_olddir_mode:
+        description: "Permissions mode octal string for auto-created olddir directories."
+        type: str
+        default: "0755"
+      logrotate_rules:
+        description: "List of per-application log rotation rule configurations."
+        type: list
+        elements: dict
+        options:
+          name:
+            description: "Name of the logrotate rule file created under /etc/logrotate.d/."
+            type: str
+            required: true
+          paths:
+            description: "List of target log file paths or glob expressions to rotate."
+            type: list
+            elements: str
+            required: true
+          state:
+            description: "State of the drop-in logrotate rule file."
+            type: str
+            default: "present"
+            choices:
+              - present
+              - absent
+          options:
+            description: "Per-rule configuration parameters override."
+            type: dict
+            options:
+              rotate:
+                description: "Number of log file archives to keep for this rule."
+                type: int
+              daily:
+                description: "Rotate log files daily."
+                type: bool
+              weekly:
+                description: "Rotate log files weekly."
+                type: bool
+              monthly:
+                description: "Rotate log files monthly."
+                type: bool
+              compress:
+                description: "Compress rotated log files."
+                type: bool
+              delaycompress:
+                description: "Postpone compression of rotated file until next cycle."
+                type: bool
+              missingok:
+                description: "Do not report error if target log file is missing."
+                type: bool
+              notifempty:
+                description: "Do not rotate log file if it is empty."
+                type: bool
+              dateext:
+                description: "Append date format suffix to rotated archives."
+                type: bool
+              dateformat:
+                description: "Date suffix format string."
+                type: str
+              create:
+                description: "Creation mode, user, and group for new empty log file."
+                type: str
+              copytruncate:
+                description: "Truncate original file in place after creating a copy."
+                type: bool
+              olddir:
+                description: "Directory path to move log archives into."
+                type: str
+              sharedscripts:
+                description: "Run prerotate/postrotate scripts only once for all matched logs."
+                type: bool
+              prerotate:
+                description: "Shell command script executed before rotation."
+                type: str
+              postrotate:
+                description: "Shell command script executed after rotation."
+                type: str
+              size:
+                description: "Log size threshold triggering rotation (e.g. 100k, 10M)."
+                type: str
+              su:
+                description: "User and group used to run rotation scripts."
+                type: str
+      logrotate_role_action:
+        description: "Execution scope action selector."
+        type: str
+        default: "all"
+        choices:
+          - all
+          - install
+          - configure
+          - logrotate
+      logrotate_fail_on_verify_error:
+        description: "Whether a failed logrotate dry-run verification aborts the role run."
+        type: bool
+        default: true

@@ -1,30 +1,17 @@
 ---
 # =============================================================================
-# Ansible Role: logrotate - Configure Main Logrotate
+# Ansible Role: Logrotate - Tasks: Configuration
 # =============================================================================
-# This file manages the main /etc/logrotate.conf using a Jinja2 template.
-#
-# Flow:
-# 1. Main configuration template deployment
+# Manages the main /etc/logrotate.conf configuration file.
 # =============================================================================
 
-# -----------------------------------------------------------------------------
-# 1. Main Configuration Template Deployment
-# -----------------------------------------------------------------------------
 - name: Logrotate | configure | Render main /etc/logrotate.conf
+  become: true
   ansible.builtin.template:
     src: "logrotate.conf.j2"
-    dest: "/etc/logrotate.conf"
+    dest: "{{ logrotate_main_config_path }}"
     owner: root
     group: root
     mode: "0644"
     validate: "logrotate -d -s {{ logrotate_status_file }} %s"
     backup: true
-  become: true
-  when: >
-    logrotate_role_action in ['all', 'configure'] and
-    logrotate_manage_main_conf
-  tags:
-    - setup
-    - configure
-    - config

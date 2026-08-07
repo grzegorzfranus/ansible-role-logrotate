@@ -1,81 +1,49 @@
 ---
 # =============================================================================
-# Ansible Role: logrotate - Per-rule tasks
+# Ansible Role: Logrotate - Tasks: Per-rule Management
 # =============================================================================
-# Purpose:
-# - Perform all operations for a single rule under /etc/logrotate.d
-# - This file is included from tasks/main.yml with `vars: { rule: item }`
-#
-# Flow:
-# 1) Ensure olddir exists (optional)
-#    - Stat olddir when specified and creation enabled
-#    - Create olddir only if it does not exist
-# 2) Render present rule
-# 3) Remove absent rule
+# Manages per-application log rotation rule files under /etc/logrotate.d.
 # =============================================================================
 
-# -----------------------------------------------------------------------------
-# 1. Ensure olddir exists (optional)
-# -----------------------------------------------------------------------------
 - name: Logrotate | rules | Stat olddir (when specified)
   ansible.builtin.stat:
     path: "{{ rule.options.olddir }}"
-  register: logrotate_rule_olddir_stat
-  when: >
-    logrotate_olddir_create_enabled and
-    rule.options is defined and
-    rule.options.olddir is defined
-  tags:
-    - config
-    - logrotate
+  register: __logrotate_rule_olddir_stat
+  when:
+    - logrotate_olddir_create_enabled | bool
+    - rule.options is defined
+    - rule.options.olddir is defined
 
 - name: Logrotate | rules | Create olddir when missing
+  become: true
   ansible.builtin.file:
     path: "{{ rule.options.olddir }}"
     state: directory
     owner: "{{ logrotate_olddir_owner }}"
     group: "{{ logrotate_olddir_group }}"
     mode: "{{ logrotate_olddir_mode }}"
-  become: true
-  when: >
-    logrotate_olddir_create_enabled and
-    rule.options is defined and
-    rule.options.olddir is defined and
-    logrotate_rule_olddir_stat.stat is defined and
-    not (logrotate_rule_olddir_stat.stat.exists | default(false))
-  tags:
-    - config
-    - logrotate
+  when:
+    - logrotate_olddir_create_enabled | bool
+    - rule.options is defined
+    - rule.options.olddir is defined
+    - __logrotate_rule_olddir_stat.stat is defined
+    - not (__logrotate_rule_olddir_stat.stat.exists | default(false))
 
-# -----------------------------------------------------------------------------
-# 2. Render present rule
-# -----------------------------------------------------------------------------
 - name: Logrotate | rules | Render rule (present)
+  become: true
   ansible.builtin.template:
     src: "logrotate_rule.j2"
-    dest: "/etc/logrotate.d/{{ rule.name }}"
+    dest: "{{ logrotate_d_directory_path }}/{{ rule.name }}"
     owner: root
     group: root
     mode: "0644"
     validate: "logrotate -d -s {{ logrotate_status_file }} %s"
-    backup: false
-  become: true
-  when: >
-    rule.state | default('present') == 'present'
-  tags:
-    - config
-    - logrotate
+    backup: true
+  when: rule.state | default('present') == 'present'
 
-# -----------------------------------------------------------------------------
-# 3. Remove absent rule
-# -----------------------------------------------------------------------------
 - name: Logrotate | rules | Remove rule (absent)
-  ansible.builtin.file:
-    path: "/etc/logrotate.d/{{ rule.name }}"
-    state: absent
   become: true
-  when: >
-    rule.state | default('present') == 'absent'
-  tags:
-    - config
-    - logrotate
+  ansible.builtin.file:
+    path: "{{ logrotate_d_directory_path }}/{{ rule.name }}"
+    state: absent
+  when: rule.state | default('present') == 'absent'

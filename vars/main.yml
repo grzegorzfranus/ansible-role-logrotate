@@ -1,6 +1,6 @@
 ---
 # =============================================================================
-# Ansible Role: logrotate - Common Variables
+# Ansible Role: Logrotate - Common Variables
 # =============================================================================
 # This file defines common variables shared across all distributions.
 # These values are distribution-agnostic and apply to all supported systems.
@@ -14,13 +14,16 @@
 # 1. Package Settings
 # -----------------------------------------------------------------------------
 # Package name for logrotate (consistent across Debian/Ubuntu)
+# Valid values: package name string e.g. "logrotate"
 logrotate_package_name: "logrotate"
 
 # -----------------------------------------------------------------------------
 # 2. Logrotate Configuration Paths
 # -----------------------------------------------------------------------------
 # Directory containing per-application logrotate configuration files
+# Valid values: absolute directory path string starting with /
 logrotate_d_directory_path: "/etc/logrotate.d"
 
 # Path to the main logrotate configuration file
+# Valid values: absolute file path string starting with /
 logrotate_main_config_path: "/etc/logrotate.conf"

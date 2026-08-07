@@ -1,23 +1,16 @@
 ---
 # =============================================================================
-# Ansible Role: logrotate - Install Tasks
+# Ansible Role: Logrotate - Tasks: Installation
 # =============================================================================
-# This file installs required packages for logrotate management.
-#
-# Flow:
-# 1. Package installation
+# Installs the logrotate package.
 # =============================================================================
 
-# -----------------------------------------------------------------------------
-# 1. Package Installation
-# -----------------------------------------------------------------------------
 - name: Logrotate | install | Ensure logrotate present
-  ansible.builtin.package:
-    name: logrotate
-    state: present
   become: true
-  when: >
-    logrotate_role_action in ['all', 'install']
-  tags:
-    - setup
-    - install
+  ansible.builtin.package:
+    name: "{{ logrotate_package_name }}"
+    state: present
+  register: __logrotate_package_result
+  retries: 3
+  delay: 5
+  until: __logrotate_package_result is succeeded

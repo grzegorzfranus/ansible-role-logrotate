@@ -1,6 +1,6 @@
 ---
 # =============================================================================
-# Ansible Role: logrotate - RedHat-Specific Variables
+# Ansible Role: Logrotate - RedHat-Specific Variables
 # =============================================================================
 # This file defines variables specific to RedHat-based distributions.
 # These values override or supplement the common variables defined in main.yml.
@@ -13,12 +13,17 @@
 # -----------------------------------------------------------------------------
 # 1. Service Settings
 # -----------------------------------------------------------------------------
-# System user and group commonly owning rotated files via rsyslog on RedHat
+# System user commonly owning rotated files via rsyslog on RedHat
+# Valid values: system user string e.g. "root"
 logrotate_rsyslog_su_user: "root"
+
+# System group commonly owning rotated files via rsyslog on RedHat
+# Valid values: system group string e.g. "root"
 logrotate_rsyslog_su_group: "root"
 
 # -----------------------------------------------------------------------------
 # 2. File Paths and Permissions
 # -----------------------------------------------------------------------------
-# Path to rsyslog postrotate helper (may differ on RedHat systems)
+# Path to rsyslog postrotate helper script on RedHat
+# Valid values: absolute file path string starting with /
 logrotate_rsyslog_postrotate_helper_path: "/usr/sbin/logrotate"

@@ -1,6 +1,6 @@
 ---
 # =============================================================================
-# Ansible Role: logrotate - Debian-Specific Variables
+# Ansible Role: Logrotate - Debian-Specific Variables
 # =============================================================================
 # This file defines variables specific to Debian-based distributions.
 # These values override or supplement the common variables defined in main.yml.
@@ -13,12 +13,17 @@
 # -----------------------------------------------------------------------------
 # 1. Service Settings
 # -----------------------------------------------------------------------------
-# System user and group commonly owning rotated files via rsyslog
+# System user commonly owning rotated files via rsyslog
+# Valid values: system user string e.g. "root"
 logrotate_rsyslog_su_user: "root"
+
+# System group commonly owning rotated files via rsyslog
+# Valid values: system group string e.g. "syslog"
 logrotate_rsyslog_su_group: "syslog"
 
 # -----------------------------------------------------------------------------
 # 2. File Paths and Permissions
 # -----------------------------------------------------------------------------
-# Path to rsyslog postrotate helper
+# Path to rsyslog postrotate helper script
+# Valid values: absolute file path string starting with /
 logrotate_rsyslog_postrotate_helper_path: "/usr/lib/rsyslog/rsyslog-rotate"
