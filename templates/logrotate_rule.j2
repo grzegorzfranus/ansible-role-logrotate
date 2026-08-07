@@ -1,14 +1,14 @@
 #jinja2: trim_blocks: True, lstrip_blocks: True
 {{ ansible_managed | comment }}
 
-# Log rotation configuration for {{ item.name }}
+# Log rotation configuration for {{ rule.name }}
 # This template manages the rotation of log files to prevent disk space issues
 # and maintain organized log archives.
 
 # Define log files to rotate
-{% for p in item.paths %}{{ p }}
+{% for p in rule.paths %}{{ p }}
 {% endfor %}{
-  {% set opts = item.options | default({}) %}
+  {% set opts = rule.options | default({}) %}
   {% if opts.daily | default(false) %}
   # Rotation frequency: daily
   daily
