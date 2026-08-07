@@ -104,7 +104,7 @@
       - logrotate_state is defined
       - logrotate_state is string
       - logrotate_state | length > 0
-      - logrotate_state in ['present', 'absent']
+      - logrotate_state | lower in ['present', 'absent']
     fail_msg: "logrotate_state must be one of: 'present', 'absent'"
     success_msg: "logrotate_state validated: {{ logrotate_state }}"
 
