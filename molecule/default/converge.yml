@@ -61,7 +61,7 @@
     logrotate_rules:
       - name: sample
         paths:
-          - /var/log/syslog
+          - /var/log/sample/*.log
         options:
           rotate: 3
           weekly: true
