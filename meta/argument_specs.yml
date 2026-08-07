@@ -85,6 +85,7 @@ argument_specs:
         description: "List of per-application log rotation rule configurations."
         type: list
         elements: dict
+        default: []
         options:
           name:
             description: "Name of the logrotate rule file created under /etc/logrotate.d/."

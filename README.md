@@ -72,6 +72,13 @@ ansible-playbook -i inventory playbook.yml
 
 ## ⚙️ Configuration
 
+### ⬆️ Upgrading from 1.x
+
+Version 2.0.0 introduces two breaking changes:
+
+1. **`logrotate_role_action` removed**: Execution scope is now controlled exclusively via Ansible tags (`logrotate_setup`, `logrotate_install`, `logrotate_configure`, `logrotate_rules`, `logrotate_verify`, `logrotate_remove`).
+2. **`logrotate_rules` defaults to `[]`**: The role no longer manages any drop-in rules out of the box. To retain the six system rules (`rsyslog`, `wtmp`, `btmp`, `apt`, `unattended-upgrades`, `dpkg`) previously enabled by default, copy their definitions from [Reproducing Debian/Ubuntu System Log Rules](#reproducing-debianubuntu-system-log-rules) into your playbook or inventory. Existing files under `/etc/logrotate.d` are left untouched unless explicitly managed.
+
 ### Default Configuration
 
 The role comes pre-configured with safe, production-ready defaults:
@@ -93,8 +100,7 @@ logrotate_olddir_create_enabled: true
 logrotate_olddir_owner: "root"
 logrotate_olddir_group: "root"
 logrotate_olddir_mode: "0755"
-# logrotate_rules: 6 system rules pre-configured by default (rsyslog, wtmp,
-# btmp, apt, unattended-upgrades, dpkg) — see defaults/main.yml
+logrotate_rules: []
 logrotate_fail_on_verify_error: true
 ```
 
@@ -130,7 +136,7 @@ logrotate_fail_on_verify_error: true
 
 | Variable | Description | Default |
 |---|---|---|
-| `logrotate_rules` | List of application-specific rule dictionaries rendered under `/etc/logrotate.d/<name>` | `[...]` (see `defaults/main.yml`) |
+| `logrotate_rules` | List of application-specific rule dictionaries rendered under `/etc/logrotate.d/<name>`. Empty by default: the role manages no drop-in rules unless explicitly configured | `[]` |
 
 #### Per-rule Item Fields (`logrotate_rules[]`)
 
@@ -385,8 +391,111 @@ Automated release workflow driven by Release Please:
             state: present
 ```
 
-> [!WARNING]
-> Overriding `logrotate_rules` replaces the entire list of managed rules rather than merging with defaults. To retain default system log rules (`rsyslog`, `wtmp`, `btmp`, `apt`, `unattended-upgrades`, `dpkg`), include their definitions alongside your custom rules in your playbook or `group_vars`.
+### Reproducing Debian/Ubuntu System Log Rules
+
+Prior to version 2.0.0, this role included six pre-configured drop-in rules by default. To preserve or opt into this behavior, define `logrotate_rules` in your playbook or inventory:
+
+```yaml
+---
+- hosts: all
+  become: true
+  roles:
+    - role: grzegorzfranus.logrotate
+      vars:
+        logrotate_rules:
+          # Core system logs (rsyslog-managed)
+          - name: rsyslog
+            paths:
+              - /var/log/syslog
+              - /var/log/mail.log
+              - /var/log/kern.log
+              - /var/log/auth.log
+              - /var/log/user.log
+              - /var/log/cron.log
+            options:
+              weekly: true
+              rotate: 4
+              compress: true
+              delaycompress: false
+              missingok: true
+              notifempty: true
+              su: "root syslog"
+              sharedscripts: true
+              postrotate: |
+                /usr/lib/rsyslog/rsyslog-rotate || true
+            state: present
+
+          # Login accounting (wtmp)
+          - name: wtmp
+            paths:
+              - /var/log/wtmp
+            options:
+              monthly: true
+              rotate: 1
+              create: "0664 root utmp"
+              missingok: true
+              notifempty: true
+              compress: false
+            state: present
+
+          # Failed login accounting (btmp)
+          - name: btmp
+            paths:
+              - /var/log/btmp
+            options:
+              monthly: true
+              rotate: 1
+              create: "0600 root utmp"
+              missingok: true
+              notifempty: true
+              compress: false
+            state: present
+
+          # APT logs
+          - name: apt
+            paths:
+              - /var/log/apt/term.log
+              - /var/log/apt/history.log
+            options:
+              monthly: true
+              rotate: 12
+              compress: false
+              delaycompress: false
+              missingok: true
+              notifempty: true
+              create: "0640 root adm"
+            state: present
+
+          # Unattended upgrades logs
+          - name: unattended-upgrades
+            paths:
+              - /var/log/unattended-upgrades/unattended-upgrades.log
+              - /var/log/unattended-upgrades/unattended-upgrades-shutdown.log
+            options:
+              monthly: true
+              rotate: 6
+              compress: false
+              delaycompress: false
+              missingok: true
+              notifempty: true
+              create: "0640 root adm"
+            state: present
+
+          # DPKG related logs
+          - name: dpkg
+            paths:
+              - /var/log/dpkg.log
+              - /var/log/alternatives.log
+            options:
+              monthly: true
+              rotate: 12
+              compress: false
+              delaycompress: false
+              missingok: true
+              notifempty: true
+              create: "0640 root adm"
+            state: present
+```
 
 ## 🤝 Contributing
 
