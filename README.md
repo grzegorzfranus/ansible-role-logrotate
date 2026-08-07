@@ -145,7 +145,7 @@ logrotate_fail_on_verify_error: true
 | Field | Description | Required | Default |
 |---|---|---|---|
 | `name` | Rule file name under `/etc/logrotate.d/` | Yes | - |
-| `paths` | List of target log file paths or glob expressions | Yes | - |
+| `paths` | List of target log file paths or glob expressions (not required for entries whose `state` is `absent` or when `logrotate_state` is `absent`) | Only when rendered | - |
 | `state` | Desired rule file state (`present` or `absent`) | No | `"present"` |
 | `options` | Dictionary of per-rule options (see suboptions below) | No | `{}` |
 
@@ -400,6 +400,8 @@ Automated release workflow driven by Release Please:
 ```
 
 ### Removing Managed Drop-in Rules
+
+When removing rules you only need to declare each rule's `name` — `paths` are not required because nothing is rendered.
 
 ```yaml
 ---

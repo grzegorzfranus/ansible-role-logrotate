@@ -92,10 +92,10 @@ argument_specs:
             type: str
             required: true
           paths:
-            description: "List of target log file paths or glob expressions to rotate."
+            description: "List of target log file paths or glob expressions to rotate (required only for rendered rules)."
             type: list
             elements: str
-            required: true
+            required: false
           state:
             description: "State of the drop-in logrotate rule file."
             type: str
