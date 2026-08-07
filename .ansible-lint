@@ -5,4 +5,3 @@ skip_list:
 exclude_paths:
   - molecule/**
   - .github/workflows/**
-

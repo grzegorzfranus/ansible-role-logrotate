@@ -1,13 +1,21 @@
 ---
 extends: default
 rules:
+  comments:
+    min-spaces-from-content: 1
+  comments-indentation: false
   line-length:
     max: 200
     level: warning
   truthy:
     allowed-values: ["true", "false", "yes", "no"]
+  braces:
+    min-spaces-inside: 0
+    max-spaces-inside: 1
+    level: error
+  brackets:
+    max-spaces-inside: 1
+    level: error
   octal-values:
     forbid-implicit-octal: true
     forbid-explicit-octal: true
-  comments-indentation: false
-
