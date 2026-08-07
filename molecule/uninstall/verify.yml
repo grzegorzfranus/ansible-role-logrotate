@@ -1,0 +1,53 @@
+---
+# =============================================================================
+# Ansible Role: Logrotate - Molecule Uninstall Verification Playbook
+# =============================================================================
+# Verifies state after role removal (logrotate_state: absent):
+# - Managed drop-in rule /etc/logrotate.d/sample is absent
+# - Distribution main config /etc/logrotate.conf remains intact
+# - Package remains installed when logrotate_remove_package is false
+# =============================================================================
+
+- name: molecule | Verify Uninstall Scenario
+  hosts: all
+  gather_facts: true
+
+  vars_files:
+    - "../../defaults/main.yml"
+    - "../../vars/main.yml"
+
+  tasks:
+    - name: Verify | Gather package facts
+      ansible.builtin.package_facts:
+        manager: auto
+
+    - name: Verify | Assert logrotate package is still installed
+      ansible.builtin.assert:
+        that:
+          - logrotate_package_name in ansible_facts.packages
+        fail_msg: "Package '{{ logrotate_package_name }}' should still be installed"
+        success_msg: "Package '{{ logrotate_package_name }}' is still installed"
+
+    - name: Verify | Check main configuration file status
+      ansible.builtin.stat:
+        path: "{{ logrotate_main_config_path }}"
+      register: __logrotate_main_conf_stat
+
+    - name: Verify | Assert main configuration still exists
+      ansible.builtin.assert:
+        that:
+          - __logrotate_main_conf_stat.stat.exists
+        fail_msg: "Main configuration {{ logrotate_main_config_path }} was removed but should remain intact"
+        success_msg: "Main configuration {{ logrotate_main_config_path }} is still present"
+
+    - name: Verify | Check sample drop-in rule status
+      ansible.builtin.stat:
+        path: "{{ logrotate_d_directory_path }}/sample"
+      register: __logrotate_sample_rule_stat
+
+    - name: Verify | Assert sample drop-in rule is absent
+      ansible.builtin.assert:
+        that:
+          - not __logrotate_sample_rule_stat.stat.exists
+        fail_msg: "Sample drop-in rule {{ logrotate_d_directory_path }}/sample still exists but should be absent"
+        success_msg: "Sample drop-in rule {{ logrotate_d_directory_path }}/sample is absent"

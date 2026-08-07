@@ -1,0 +1,64 @@
+---
+# =============================================================================
+# Ansible Role: Logrotate - Molecule Preparation Playbook
+# =============================================================================
+# This playbook prepares the test environment before running the role:
+# - Fixes critical file permissions
+# - Performs basic environment checks
+# - Ensures required directories exist
+#
+# Flow:
+# 1. Fix system file permissions
+# 2. Validate environment state
+# 3. Ensure required directories
+# =============================================================================
+
+- name: molecule | Prepare
+  hosts: all
+  gather_facts: false
+
+  tasks:
+    # 1. Fix system file permissions
+    # Justification: Use shell module to run multi-command inspection and chmod reset on /etc/shadow.
+    - name: Prepare | Fix /etc/shadow permissions
+      ansible.builtin.shell:
+        cmd: |
+          echo "Checking /etc/shadow permissions..."
+          ls -l /etc/shadow || true
+          chmod 0400 /etc/shadow || true
+          echo "Updated /etc/shadow permissions:"
+          ls -l /etc/shadow || true
+          echo ""
+      register: __logrotate_etc_shadow
+      changed_when: false
+
+    - name: Prepare | Verify shadow file permissions
+      ansible.builtin.debug:
+        var: __logrotate_etc_shadow.stdout
+
+    # 2. Validate environment state
+    # Justification: Use shell module to inspect binary availability before role execution.
+    - name: Prepare | Check logrotate availability
+      ansible.builtin.shell:
+        cmd: |
+          if command -v logrotate >/dev/null 2>&1; then
+            echo "logrotate binary is available"
+          else
+            echo "logrotate not installed yet (expected before role execution)"
+          fi
+          echo ""
+      register: __logrotate_binary_check
+      changed_when: false
+
+    - name: Prepare | Show logrotate check results
+      ansible.builtin.debug:
+        var: __logrotate_binary_check.stdout
+
+    # 3. Ensure required directories
+    - name: Prepare | Ensure /etc/logrotate.d directory
+      ansible.builtin.file:
+        path: /etc/logrotate.d
+        state: directory
+        mode: "0755"
+        owner: root
+        group: root
