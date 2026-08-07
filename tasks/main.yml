@@ -2,12 +2,10 @@
 # =============================================================================
 # Ansible Role: Logrotate - Tasks: Main Entrypoint
 # =============================================================================
+# Main task entrypoint orchestrating role execution workflow.
 # Flow: include_vars → assert → install → configure → rules → verify
 # =============================================================================
 
-# -----------------------------------------------------------------------------
-# 1. OS-Specific Variables
-# -----------------------------------------------------------------------------
 - name: Logrotate | include_vars | Gather OS specific variables
   ansible.builtin.include_vars: "{{ lookup('first_found', params) }}"
   vars:
@@ -23,41 +21,28 @@
     - logrotate_setup
     - logrotate_init
 
-# -----------------------------------------------------------------------------
-# 2. Variable Validation
-# -----------------------------------------------------------------------------
 - name: Logrotate | assert | Validate role variables and requirements
   ansible.builtin.import_tasks: assert.yml
   tags:
     - always
     - logrotate_validate
 
-# -----------------------------------------------------------------------------
-# 3. Package Installation
-# -----------------------------------------------------------------------------
 - name: Logrotate | install | Install dependencies
   ansible.builtin.import_tasks: install.yml
-  when: >
-    logrotate_role_action in ['all', 'install']
+  when: logrotate_role_action in ['all', 'install']
   tags:
     - logrotate_setup
     - logrotate_install
 
-# -----------------------------------------------------------------------------
-# 4. Main Configuration
-# -----------------------------------------------------------------------------
 - name: Logrotate | configure | Configure main logrotate.conf
   ansible.builtin.import_tasks: configure.yml
-  when: >
-    logrotate_role_action in ['all', 'configure'] and
-    (logrotate_manage_main_conf | bool)
+  when:
+    - logrotate_role_action in ['all', 'configure']
+    - logrotate_manage_main_conf | bool
   tags:
     - logrotate_setup
     - logrotate_configure
 
-# -----------------------------------------------------------------------------
-# 5. Drop-in Rules Management (Optional)
-# -----------------------------------------------------------------------------
 - name: Logrotate | rules | Apply present rules
   ansible.builtin.include_tasks:
     file: rules.yml
@@ -72,9 +57,9 @@
            + (logrotate_rules | rejectattr('state', 'defined') | list) }}"
   loop_control:
     label: "{{ item.name }}"
-  when: >
-    logrotate_role_action in ['all', 'logrotate'] and
-    logrotate_rules | length > 0
+  when:
+    - logrotate_role_action in ['all', 'logrotate']
+    - logrotate_rules | length > 0
   tags:
     - logrotate_configure
     - logrotate_rules
@@ -92,19 +77,15 @@
   loop: "{{ logrotate_rules | selectattr('state', 'defined') | selectattr('state', 'equalto', 'absent') | list }}"
   loop_control:
     label: "{{ item.name }}"
-  when: >
-    logrotate_role_action in ['all', 'logrotate'] and
-    logrotate_rules | length > 0
+  when:
+    - logrotate_role_action in ['all', 'logrotate']
+    - logrotate_rules | length > 0
   tags:
     - logrotate_configure
     - logrotate_rules
 
-# -----------------------------------------------------------------------------
-# 6. Configuration Verification (Optional)
-# -----------------------------------------------------------------------------
 - name: Logrotate | verify | Verify configuration (dry-run)
   ansible.builtin.import_tasks: verify.yml
-  when: >
-    logrotate_role_action in ['all', 'configure', 'logrotate']
+  when: logrotate_role_action in ['all', 'configure', 'logrotate']
   tags:
     - logrotate_verify
