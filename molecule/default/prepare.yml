@@ -1,5 +1,6 @@
+---
 # =============================================================================
-# Ansible Role: logrotate - Molecule Preparation Playbook
+# Ansible Role: Logrotate - Molecule Preparation Playbook
 # =============================================================================
 # This playbook prepares the test environment before running the role:
 # - Fixes critical file permissions
@@ -12,15 +13,14 @@
 # 3. Ensure required directories
 # =============================================================================
 
----
 - name: molecule | Prepare
   hosts: all
   gather_facts: false
 
   tasks:
     # 1. Fix system file permissions
+    # Justification: Use shell module to run multi-command inspection and chmod reset on /etc/shadow.
     - name: Prepare | Fix /etc/shadow permissions
-      register: etc_shadow
       ansible.builtin.shell:
         cmd: |
           echo "Checking /etc/shadow permissions..."
@@ -29,12 +29,15 @@
           echo "Updated /etc/shadow permissions:"
           ls -l /etc/shadow || true
           echo ""
+      register: __logrotate_etc_shadow
+      changed_when: false
 
     - name: Prepare | Verify shadow file permissions
       ansible.builtin.debug:
-        var: etc_shadow.stdout
+        var: __logrotate_etc_shadow.stdout
 
     # 2. Validate environment state
+    # Justification: Use shell module to inspect binary availability before role execution.
     - name: Prepare | Check logrotate availability
       ansible.builtin.shell:
         cmd: |
@@ -44,17 +47,18 @@
             echo "logrotate not installed yet (expected before role execution)"
           fi
           echo ""
-      register: logrotate_check
+      register: __logrotate_binary_check
+      changed_when: false
 
     - name: Prepare | Show logrotate check results
       ansible.builtin.debug:
-        var: logrotate_check.stdout
+        var: __logrotate_binary_check.stdout
 
     # 3. Ensure required directories
     - name: Prepare | Ensure /etc/logrotate.d directory
       ansible.builtin.file:
         path: /etc/logrotate.d
         state: directory
-        mode: '0755'
+        mode: "0755"
         owner: root
         group: root

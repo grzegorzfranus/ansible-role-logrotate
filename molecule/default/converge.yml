@@ -43,16 +43,16 @@
     # System Initialization
     - name: Converge | Wait for systemd to complete initialization
       ansible.builtin.command: systemctl is-system-running
-      register: systemctl_status
+      register: __logrotate_systemctl_status
       until: >
-        'running' in systemctl_status.stdout or
-        'degraded' in systemctl_status.stdout
+        'running' in __logrotate_systemctl_status.stdout or
+        'degraded' in __logrotate_systemctl_status.stdout
       retries: 30
       delay: 5
       when: >
         ansible_service_mgr == 'systemd'
       changed_when: false
-      failed_when: systemctl_status.rc > 1
+      failed_when: __logrotate_systemctl_status.rc > 1
 
 # -----------------------------------------------------------------------------
 # 2. Role Execution
