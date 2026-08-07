@@ -317,15 +317,14 @@ ansible-role-logrotate/
 │   ├── configure.yml                  # Main configuration management
 │   ├── install.yml                    # Package installation
 │   ├── main.yml                       # Main orchestration and flow control
+│   ├── remove.yml                     # Role removal tasks
 │   ├── rules.yml                      # Drop-in rules management
 │   └── verify.yml                     # Configuration verification (dry-run)
 ├── templates/
 │   ├── logrotate.conf.j2              # Main logrotate configuration template
 │   └── logrotate_rule.j2              # Per-rule template for /etc/logrotate.d
 └── vars/
-    ├── debian.yml                     # Debian-specific variables
-    ├── main.yml                       # Common variables/constants
-    └── redhat.yml                     # RedHat-specific variables
+    └── main.yml                       # Common variables/constants
 ```
 
 ## 🏷️ Tags
