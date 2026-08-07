@@ -1,6 +1,6 @@
 ---
 # =============================================================================
-# Ansible Role: logrotate - Per-rule tasks
+# Ansible Role: Logrotate - Tasks: Per-rule Management
 # =============================================================================
 # Purpose:
 # - Perform all operations for a single rule under /etc/logrotate.d
@@ -20,14 +20,14 @@
 - name: Logrotate | rules | Stat olddir (when specified)
   ansible.builtin.stat:
     path: "{{ rule.options.olddir }}"
-  register: logrotate_rule_olddir_stat
+  register: __logrotate_rule_olddir_stat
   when: >
-    logrotate_olddir_create_enabled and
+    (logrotate_olddir_create_enabled | bool) and
     rule.options is defined and
     rule.options.olddir is defined
   tags:
-    - config
-    - logrotate
+    - logrotate_configure
+    - logrotate_rules
 
 - name: Logrotate | rules | Create olddir when missing
   ansible.builtin.file:
@@ -38,14 +38,14 @@
     mode: "{{ logrotate_olddir_mode }}"
   become: true
   when: >
-    logrotate_olddir_create_enabled and
+    (logrotate_olddir_create_enabled | bool) and
     rule.options is defined and
     rule.options.olddir is defined and
-    logrotate_rule_olddir_stat.stat is defined and
-    not (logrotate_rule_olddir_stat.stat.exists | default(false))
+    __logrotate_rule_olddir_stat.stat is defined and
+    not (__logrotate_rule_olddir_stat.stat.exists | default(false))
   tags:
-    - config
-    - logrotate
+    - logrotate_configure
+    - logrotate_rules
 
 # -----------------------------------------------------------------------------
 # 2. Render present rule
@@ -53,29 +53,29 @@
 - name: Logrotate | rules | Render rule (present)
   ansible.builtin.template:
     src: "logrotate_rule.j2"
-    dest: "/etc/logrotate.d/{{ rule.name }}"
+    dest: "{{ logrotate_d_directory_path }}/{{ rule.name }}"
     owner: root
     group: root
     mode: "0644"
     validate: "logrotate -d -s {{ logrotate_status_file }} %s"
-    backup: false
+    backup: true
   become: true
   when: >
     rule.state | default('present') == 'present'
   tags:
-    - config
-    - logrotate
+    - logrotate_configure
+    - logrotate_rules
 
 # -----------------------------------------------------------------------------
 # 3. Remove absent rule
 # -----------------------------------------------------------------------------
 - name: Logrotate | rules | Remove rule (absent)
   ansible.builtin.file:
-    path: "/etc/logrotate.d/{{ rule.name }}"
+    path: "{{ logrotate_d_directory_path }}/{{ rule.name }}"
     state: absent
   become: true
   when: >
     rule.state | default('present') == 'absent'
   tags:
-    - config
-    - logrotate
+    - logrotate_configure
+    - logrotate_rules
