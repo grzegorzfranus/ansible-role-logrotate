@@ -19,7 +19,7 @@ This Ansible role installs and configures `logrotate`, managing the main `/etc/l
 The role provides a complete log rotation management layout:
 
 ```text
-Config Vars → main.yml → install logrotate → template /etc/logrotate.conf → template /etc/logrotate.d/*
+include_vars → assert → [present: install → configure → rules → verify | absent: remove]
 ```
 
 ### Delivery Method Decision: Native OS Package
@@ -101,6 +101,8 @@ logrotate_olddir_owner: "root"
 logrotate_olddir_group: "root"
 logrotate_olddir_mode: "0755"
 logrotate_rules: []
+logrotate_state: "present"
+logrotate_remove_package: false
 logrotate_fail_on_verify_error: true
 ```
 
@@ -172,7 +174,13 @@ logrotate_fail_on_verify_error: true
 
 | Variable | Description | Default |
 |---|---|---|
+| `logrotate_state` | Desired lifecycle state of the logrotate configuration managed by this role (`present`, `absent`) | `"present"` |
+| `logrotate_remove_package` | Whether the `absent` state also uninstalls the logrotate package | `false` |
 | `logrotate_fail_on_verify_error` | Whether a failed logrotate dry-run verification aborts the role run | `true` |
+
+> [!WARNING]
+> Enabling `logrotate_remove_package: true` on Debian/Ubuntu systems may remove the base `logrotate` system package and pull in or remove unrelated system dependencies. Use with caution.
+> Note: The `absent` state removes managed drop-in rule files under `/etc/logrotate.d/`, but intentionally leaves the distribution-owned `/etc/logrotate.conf` untouched.
 
 ### 5. Internal Constants (`vars/*.yml`)
 
@@ -334,6 +342,7 @@ All role-specific tags are prefixed with `logrotate_` to prevent collisions acro
 | `logrotate_configure` | Main `/etc/logrotate.conf` configuration tasks |
 | `logrotate_rules` | Drop-in rule management under `/etc/logrotate.d` |
 | `logrotate_verify` | Dry-run configuration verification tasks |
+| `logrotate_remove` | Tasks executing role removal and cleanup when `logrotate_state` is `absent` |
 
 ## CI/CD Pipeline
 
@@ -389,6 +398,21 @@ Automated release workflow driven by Release Please:
               postrotate: |
                 /usr/bin/systemctl reload nginx || true
             state: present
+```
+
+### Removing Managed Drop-in Rules
+
+```yaml
+---
+- hosts: all
+  become: true
+  roles:
+    - role: grzegorzfranus.logrotate
+      vars:
+        logrotate_state: "absent"
+        logrotate_rules:
+          - name: nginx
+        logrotate_remove_package: false
 ```
 
 ### Reproducing Debian/Ubuntu System Log Rules

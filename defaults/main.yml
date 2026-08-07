@@ -120,6 +120,15 @@ logrotate_rules: []
 # -----------------------------------------------------------------------------
 # 4. Role Lifecycle
 # -----------------------------------------------------------------------------
+# Desired lifecycle state of the logrotate configuration managed by this role
+# Valid values: present, absent
+logrotate_state: "present"
+
+# Whether the 'absent' state also uninstalls the logrotate package
+# Disabled by default because logrotate is a base system package on Debian/Ubuntu
+# and its removal may pull in unrelated system dependencies
+# Valid values: true, false
+logrotate_remove_package: false
 
 # Whether a failed logrotate dry-run verification aborts the role run
 # Set to false on hosts with pre-existing third-party rules in /etc/logrotate.d

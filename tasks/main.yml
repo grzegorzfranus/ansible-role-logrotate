@@ -3,7 +3,7 @@
 # Ansible Role: Logrotate - Tasks: Main Entrypoint
 # =============================================================================
 # Main task entrypoint orchestrating role execution workflow.
-# Flow: include_vars → assert → install → configure → rules → verify
+# Flow: include_vars → assert → [present: install → configure → rules → verify | absent: remove]
 # =============================================================================
 
 - name: Logrotate | include_vars | Gather OS specific variables
@@ -27,61 +27,70 @@
     - always
     - logrotate_validate
 
-- name: Logrotate | install | Install dependencies
-  ansible.builtin.import_tasks: install.yml
-  tags:
-    - logrotate_setup
-    - logrotate_install
+- name: "Logrotate | main | Execute lifecycle tasks for state: present"
+  when: logrotate_state | lower == 'present'
+  block:
+    - name: Logrotate | install | Install dependencies
+      ansible.builtin.import_tasks: install.yml
+      tags:
+        - logrotate_setup
+        - logrotate_install
 
-- name: Logrotate | configure | Configure main logrotate.conf
-  ansible.builtin.import_tasks: configure.yml
-  when: logrotate_manage_main_conf | bool
-  tags:
-    - logrotate_setup
-    - logrotate_configure
+    - name: Logrotate | configure | Configure main logrotate.conf
+      ansible.builtin.import_tasks: configure.yml
+      when: logrotate_manage_main_conf | bool
+      tags:
+        - logrotate_setup
+        - logrotate_configure
 
-- name: Logrotate | rules | Apply present rules
-  ansible.builtin.include_tasks:
-    file: rules.yml
-  args:
-    apply:
+    - name: Logrotate | rules | Apply present rules
+      ansible.builtin.include_tasks:
+        file: rules.yml
+      args:
+        apply:
+          tags:
+            - logrotate_setup
+            - logrotate_configure
+            - logrotate_rules
+      vars:
+        rule: "{{ item }}"
+      loop: "{{ (logrotate_rules | selectattr('state', 'defined') | selectattr('state', 'equalto', 'present') | list)
+               + (logrotate_rules | rejectattr('state', 'defined') | list) }}"
+      loop_control:
+        label: "{{ item.name }}"
+      when: logrotate_rules | length > 0
       tags:
         - logrotate_setup
         - logrotate_configure
         - logrotate_rules
-  vars:
-    rule: "{{ item }}"
-  loop: "{{ (logrotate_rules | selectattr('state', 'defined') | selectattr('state', 'equalto', 'present') | list)
-           + (logrotate_rules | rejectattr('state', 'defined') | list) }}"
-  loop_control:
-    label: "{{ item.name }}"
-  when: logrotate_rules | length > 0
-  tags:
-    - logrotate_setup
-    - logrotate_configure
-    - logrotate_rules
 
-- name: Logrotate | rules | Remove absent rules
-  ansible.builtin.include_tasks:
-    file: rules.yml
-  args:
-    apply:
+    - name: Logrotate | rules | Remove absent rules
+      ansible.builtin.include_tasks:
+        file: rules.yml
+      args:
+        apply:
+          tags:
+            - logrotate_setup
+            - logrotate_configure
+            - logrotate_rules
+      vars:
+        rule: "{{ item }}"
+      loop: "{{ logrotate_rules | selectattr('state', 'defined') | selectattr('state', 'equalto', 'absent') | list }}"
+      loop_control:
+        label: "{{ item.name }}"
+      when: logrotate_rules | length > 0
       tags:
         - logrotate_setup
         - logrotate_configure
         - logrotate_rules
-  vars:
-    rule: "{{ item }}"
-  loop: "{{ logrotate_rules | selectattr('state', 'defined') | selectattr('state', 'equalto', 'absent') | list }}"
-  loop_control:
-    label: "{{ item.name }}"
-  when: logrotate_rules | length > 0
-  tags:
-    - logrotate_setup
-    - logrotate_configure
-    - logrotate_rules
 
-- name: Logrotate | verify | Verify configuration (dry-run)
-  ansible.builtin.import_tasks: verify.yml
+    - name: Logrotate | verify | Verify configuration (dry-run)
+      ansible.builtin.import_tasks: verify.yml
+      tags:
+        - logrotate_verify
+
+- name: "Logrotate | main | Execute removal tasks for state: absent"
+  ansible.builtin.import_tasks: remove.yml
+  when: logrotate_state | lower == 'absent'
   tags:
-    - logrotate_verify
+    - logrotate_remove

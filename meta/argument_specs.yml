@@ -161,6 +161,17 @@ argument_specs:
               su:
                 description: "User and group used to run rotation scripts."
                 type: str
+      logrotate_state:
+        description: "Desired lifecycle state of the logrotate configuration managed by this role."
+        type: str
+        default: "present"
+        choices:
+          - present
+          - absent
+      logrotate_remove_package:
+        description: "Whether the 'absent' state also uninstalls the logrotate package."
+        type: bool
+        default: false
       logrotate_fail_on_verify_error:
         description: "Whether a failed logrotate dry-run verification aborts the role run."
         type: bool
