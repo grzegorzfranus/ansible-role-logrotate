@@ -43,7 +43,6 @@
     - name: Verify | Gather package facts
       ansible.builtin.package_facts:
         manager: auto
-      register: __logrotate_package_result
 
     - name: Verify | Assert logrotate package is installed
       ansible.builtin.assert:
