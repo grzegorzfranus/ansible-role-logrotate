@@ -185,9 +185,38 @@ logrotate_rules:
       create: "0640 root adm"
     state: present
 
+# Example structure for custom rules:
+# logrotate_rules:
+#   - name: nginx                         # Rule filename under /etc/logrotate.d
+#     paths:
+#       - /var/log/nginx/*.log            # One or more logfile globs/paths
+#     options:                            # Optional per-rule overrides
+#       rotate: 7                         # Number of archives to keep
+#       daily: true                       # Frequency flags: daily/weekly/monthly (choose one)
+#       compress: true                    # Compress rotated logs
+#       missingok: true                   # Do not fail if missing
+#       notifempty: true                  # Skip empty logs
+#       create: "0640 www-data adm"       # Create mode and owner:group
+#       dateext: true                     # Add date suffix
+#       dateformat: ".%Y-%m-%d"           # Date suffix format (requires dateext)
+#       copytruncate: false               # Copy+truncate instead of move
+#       olddir: "/var/log/nginx/old"      # Move archives to directory
+#       sharedscripts: false              # Group script execution
+#       prerotate: |
+#         /usr/bin/test -x /usr/sbin/nginx && exit 0
+#       postrotate: |
+#         /usr/bin/systemctl kill -s HUP nginx.service || true
+#     state: present                      # present|absent
+
 # -----------------------------------------------------------------------------
 # 4. Role Control
 # -----------------------------------------------------------------------------
 # Control which parts of the role to execute
 # Valid values: all, install, configure, logrotate
 logrotate_role_action: "all"
+
+# Whether a failed logrotate dry-run verification aborts the role run
+# Set to false on hosts with pre-existing third-party rules in /etc/logrotate.d
+# that this role does not manage and cannot repair
+# Valid values: true, false
+logrotate_fail_on_verify_error: true

@@ -1,21 +1,16 @@
 ---
 # =============================================================================
-# Ansible Role: Logrotate - Tasks: Runtime Assertions
+# Ansible Role: Logrotate - Tasks: Assertions
 # =============================================================================
+# Validates role configuration parameters and preflight requirements.
 # Basic type/choice validation is handled by meta/argument_specs.yml.
-# This file performs runtime-only checks (regex patterns, content validation, cross-field logic).
-#
-# Flow:
-# 1. General Settings Assertions
-# 2. Main Logrotate Configuration Assertions
-# 3. Per-Rule Management Assertions
-# 4. Role Control Assertions
-# 5. Internal Constants Assertions
 # =============================================================================
 
 # -----------------------------------------------------------------------------
 # 1. General Settings
 # -----------------------------------------------------------------------------
+# Validates status file path location.
+
 - name: Logrotate | assert | Validate logrotate_status_file path format
   ansible.builtin.assert:
     that:
@@ -25,13 +20,12 @@
       - logrotate_status_file is match('^/.+')
     fail_msg: "logrotate_status_file must be an absolute path starting with '/'"
     success_msg: "logrotate_status_file path format validated: {{ logrotate_status_file }}"
-  tags:
-    - always
-    - logrotate_validate
 
 # -----------------------------------------------------------------------------
 # 2. Main Logrotate Configuration
 # -----------------------------------------------------------------------------
+# Validates global logrotate octal permissions format.
+
 - name: Logrotate | assert | Validate logrotate_olddir_mode octal permissions format
   ansible.builtin.assert:
     that:
@@ -41,13 +35,12 @@
       - logrotate_olddir_mode is match('^[0-7]{3,4}$')
     fail_msg: "logrotate_olddir_mode must be a valid 3-4 digit octal mode string (e.g. '0755')"
     success_msg: "logrotate_olddir_mode octal format validated: {{ logrotate_olddir_mode }}"
-  tags:
-    - always
-    - logrotate_validate
 
 # -----------------------------------------------------------------------------
 # 3. Per-Rule Management
 # -----------------------------------------------------------------------------
+# Validates per-application log rotation rule parameters and options.
+
 - name: Logrotate | assert | Validate logrotate_rules list structure
   ansible.builtin.assert:
     that:
@@ -55,9 +48,6 @@
       - logrotate_rules is iterable
     fail_msg: "logrotate_rules must be a list"
     success_msg: "logrotate_rules list structure validated"
-  tags:
-    - always
-    - logrotate_validate
 
 - name: Logrotate | assert | Validate each rule fields and non-empty paths
   ansible.builtin.assert:
@@ -73,11 +63,7 @@
   loop: "{{ logrotate_rules }}"
   loop_control:
     label: "{{ item.name | default('unnamed') }}"
-  when: >
-    logrotate_rules | length > 0
-  tags:
-    - always
-    - logrotate_validate
+  when: logrotate_rules | length > 0
 
 - name: Logrotate | assert | Validate olddir path in rule options when present
   ansible.builtin.assert:
@@ -90,17 +76,16 @@
   loop: "{{ logrotate_rules }}"
   loop_control:
     label: "{{ item.name | default('unnamed') }}"
-  when: >
-    logrotate_rules | length > 0 and
-    item.options is defined and
-    item.options.olddir is defined
-  tags:
-    - always
-    - logrotate_validate
+  when:
+    - logrotate_rules | length > 0
+    - item.options is defined
+    - item.options.olddir is defined
 
 # -----------------------------------------------------------------------------
 # 4. Role Control
 # -----------------------------------------------------------------------------
+# Validates execution scope and verification error handling controls.
+
 - name: Logrotate | assert | Validate logrotate_role_action cross-field consistency
   ansible.builtin.assert:
     that:
@@ -110,13 +95,20 @@
       - logrotate_role_action in ['all', 'install', 'configure', 'logrotate']
     fail_msg: "logrotate_role_action must be one of: 'all', 'install', 'configure', 'logrotate'"
     success_msg: "logrotate_role_action validated: {{ logrotate_role_action }}"
-  tags:
-    - always
-    - logrotate_validate
+
+- name: Logrotate | assert | Validate logrotate_fail_on_verify_error boolean format
+  ansible.builtin.assert:
+    that:
+      - logrotate_fail_on_verify_error is defined
+      - logrotate_fail_on_verify_error is boolean
+    fail_msg: "logrotate_fail_on_verify_error must be a boolean (true or false)"
+    success_msg: "logrotate_fail_on_verify_error validated: {{ logrotate_fail_on_verify_error }}"
 
 # -----------------------------------------------------------------------------
 # 5. Internal Constants
 # -----------------------------------------------------------------------------
+# Validates package name and system configuration directory constants.
+
 - name: Logrotate | assert | Validate internal configuration path constants
   ansible.builtin.assert:
     that:
@@ -133,6 +125,3 @@
       - logrotate_main_config_path is match('^/.+')
     fail_msg: "Package name must be string, and configuration paths must be non-empty absolute paths"
     success_msg: "Internal constants validated: package={{ logrotate_package_name }}, d_dir={{ logrotate_d_directory_path }}, main={{ logrotate_main_config_path }}"
-  tags:
-    - always
-    - logrotate_validate

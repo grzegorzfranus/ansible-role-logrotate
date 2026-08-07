@@ -93,10 +93,10 @@ logrotate_olddir_create_enabled: true
 logrotate_olddir_owner: "root"
 logrotate_olddir_group: "root"
 logrotate_olddir_mode: "0755"
-# 6 system rules pre-configured by default: rsyslog, wtmp, btmp, apt,
-# unattended-upgrades, dpkg (see defaults/main.yml for full definitions)
-logrotate_rules: [...]
+# logrotate_rules: 6 system rules pre-configured by default (rsyslog, wtmp,
+# btmp, apt, unattended-upgrades, dpkg) — see defaults/main.yml
 logrotate_role_action: "all"
+logrotate_fail_on_verify_error: true
 ```
 
 ## 📊 Variables
@@ -168,6 +168,7 @@ logrotate_role_action: "all"
 | Variable | Description | Default |
 |---|---|---|
 | `logrotate_role_action` | Action selector controlling role execution scope (`all`, `install`, `configure`, `logrotate`) | `"all"` |
+| `logrotate_fail_on_verify_error` | Whether a failed logrotate dry-run verification aborts the role run | `true` |
 
 ### 5. Internal Constants (`vars/*.yml`)
 
@@ -199,6 +200,9 @@ Verify that the main configuration syntax is valid by executing a dry-run:
 ```bash
 sudo logrotate -d /etc/logrotate.conf
 ```
+
+> [!NOTE]
+> The dry-run verification task (`logrotate -d`) validates all configuration files under `/etc/logrotate.d/`, including pre-existing third-party rules not managed by this role. If target hosts contain pre-existing unmanaged rules with syntax errors or unresolvable user/group definitions, set `logrotate_fail_on_verify_error: false` to log dry-run verification failures as non-fatal warnings without aborting role execution.
 
 ### Check Managed Rule Files
 
