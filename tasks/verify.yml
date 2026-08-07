@@ -29,5 +29,7 @@
       - __logrotate_verify.rc == 0
     fail_msg: "logrotate verification failed: {{ __logrotate_verify.stderr | default(__logrotate_verify.stdout) }}"
     success_msg: "logrotate configuration verified successfully"
+  when:
+    - not ansible_check_mode
   tags:
     - logrotate_verify
