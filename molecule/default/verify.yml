@@ -1,17 +1,17 @@
 ---
 # =============================================================================
-# Ansible Role: logrotate - Molecule Verification Playbook
+# Ansible Role: Logrotate - Molecule Verification Playbook
 # =============================================================================
 # This playbook verifies the installation and configuration of logrotate.
 # It performs checks of package presence, configuration files, drop-in rules,
 # and validates the configuration via a dry-run.
 #
 # Flow:
-# 1. Load variables and gather facts
-# 2. Verify package installation
-# 3. Validate main configuration
-# 4. Verify drop-in rules
-# 5. Dry-run configuration validation
+# 1. Environment Setup
+# 2. Package Verification
+# 3. Main Configuration Verification
+# 4. Drop-in Rules Verification
+# 5. Configuration Dry-run Validation
 # =============================================================================
 
 # -----------------------------------------------------------------------------
@@ -22,8 +22,8 @@
   gather_facts: true
 
   vars_files:
-    - ../../defaults/main.yml
-    - ../../vars/main.yml
+    - "../../defaults/main.yml"
+    - "../../vars/main.yml"
 
   tasks:
     - name: Verify | Gather OS specific variables
@@ -40,12 +40,17 @@
     # -------------------------------------------------------------------------
     # 2. Package Verification
     # -------------------------------------------------------------------------
-    - name: Verify | Ensure logrotate package is installed
-      ansible.builtin.package:
-        name: "{{ logrotate_package_name }}"
-        state: present
-      become: true
-      register: _package_result_
+    - name: Verify | Gather package facts
+      ansible.builtin.package_facts:
+        manager: auto
+      register: __logrotate_package_result
+
+    - name: Verify | Assert logrotate package is installed
+      ansible.builtin.assert:
+        that:
+          - logrotate_package_name in ansible_facts.packages
+        fail_msg: "Package '{{ logrotate_package_name }}' is not installed"
+        success_msg: "Package '{{ logrotate_package_name }}' is installed"
 
     # -------------------------------------------------------------------------
     # 3. Main Configuration Verification

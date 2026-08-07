@@ -1,5 +1,6 @@
+---
 # =============================================================================
-# Ansible Role: logrotate - Molecule Convergence Playbook
+# Ansible Role: Logrotate - Molecule Convergence Playbook
 # =============================================================================
 # This playbook executes the main role functionality in the test environment.
 # It performs the following steps:
@@ -12,7 +13,6 @@
 # 2. Role Execution
 # =============================================================================
 
----
 # -----------------------------------------------------------------------------
 # 1. Pre-Tasks Setup
 # -----------------------------------------------------------------------------
@@ -71,5 +71,7 @@
           create: "0640 root adm"
         state: present
 
-  roles:
-    - role: ../../..
+  tasks:
+    - name: Converge | Include logrotate role
+      ansible.builtin.include_role:
+        name: "{{ playbook_dir }}/../.."
