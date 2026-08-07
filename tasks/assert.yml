@@ -97,6 +97,7 @@
 # -----------------------------------------------------------------------------
 # 4. Role Lifecycle
 # -----------------------------------------------------------------------------
+# Validates lifecycle state, package removal opt-in, and verification error handling.
 
 - name: Logrotate | assert | Validate logrotate_state value
   ansible.builtin.assert:

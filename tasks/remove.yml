@@ -15,7 +15,6 @@
   loop: "{{ logrotate_rules }}"
   loop_control:
     label: "{{ item.name }}"
-  when: logrotate_rules | length > 0
 
 - name: Logrotate | remove | Uninstall logrotate package
   become: true
