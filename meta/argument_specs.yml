@@ -160,15 +160,6 @@ argument_specs:
               su:
                 description: "User and group used to run rotation scripts."
                 type: str
-      logrotate_role_action:
-        description: "Execution scope action selector."
-        type: str
-        default: "all"
-        choices:
-          - all
-          - install
-          - configure
-          - logrotate
       logrotate_fail_on_verify_error:
         description: "Whether a failed logrotate dry-run verification aborts the role run."
         type: bool

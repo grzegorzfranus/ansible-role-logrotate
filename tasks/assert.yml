@@ -82,19 +82,8 @@
     - item.options.olddir is defined
 
 # -----------------------------------------------------------------------------
-# 4. Role Control
+# 4. Role Lifecycle
 # -----------------------------------------------------------------------------
-# Validates execution scope and verification error handling controls.
-
-- name: Logrotate | assert | Validate logrotate_role_action cross-field consistency
-  ansible.builtin.assert:
-    that:
-      - logrotate_role_action is defined
-      - logrotate_role_action is string
-      - logrotate_role_action | length > 0
-      - logrotate_role_action in ['all', 'install', 'configure', 'logrotate']
-    fail_msg: "logrotate_role_action must be one of: 'all', 'install', 'configure', 'logrotate'"
-    success_msg: "logrotate_role_action validated: {{ logrotate_role_action }}"
 
 - name: Logrotate | assert | Validate logrotate_fail_on_verify_error boolean format
   ansible.builtin.assert:

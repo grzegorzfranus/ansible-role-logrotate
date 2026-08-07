@@ -29,16 +29,13 @@
 
 - name: Logrotate | install | Install dependencies
   ansible.builtin.import_tasks: install.yml
-  when: logrotate_role_action in ['all', 'install']
   tags:
     - logrotate_setup
     - logrotate_install
 
 - name: Logrotate | configure | Configure main logrotate.conf
   ansible.builtin.import_tasks: configure.yml
-  when:
-    - logrotate_role_action in ['all', 'configure']
-    - logrotate_manage_main_conf | bool
+  when: logrotate_manage_main_conf | bool
   tags:
     - logrotate_setup
     - logrotate_configure
@@ -49,6 +46,7 @@
   args:
     apply:
       tags:
+        - logrotate_setup
         - logrotate_configure
         - logrotate_rules
   vars:
@@ -57,10 +55,9 @@
            + (logrotate_rules | rejectattr('state', 'defined') | list) }}"
   loop_control:
     label: "{{ item.name }}"
-  when:
-    - logrotate_role_action in ['all', 'logrotate']
-    - logrotate_rules | length > 0
+  when: logrotate_rules | length > 0
   tags:
+    - logrotate_setup
     - logrotate_configure
     - logrotate_rules
 
@@ -70,6 +67,7 @@
   args:
     apply:
       tags:
+        - logrotate_setup
         - logrotate_configure
         - logrotate_rules
   vars:
@@ -77,15 +75,13 @@
   loop: "{{ logrotate_rules | selectattr('state', 'defined') | selectattr('state', 'equalto', 'absent') | list }}"
   loop_control:
     label: "{{ item.name }}"
-  when:
-    - logrotate_role_action in ['all', 'logrotate']
-    - logrotate_rules | length > 0
+  when: logrotate_rules | length > 0
   tags:
+    - logrotate_setup
     - logrotate_configure
     - logrotate_rules
 
 - name: Logrotate | verify | Verify configuration (dry-run)
   ansible.builtin.import_tasks: verify.yml
-  when: logrotate_role_action in ['all', 'configure', 'logrotate']
   tags:
     - logrotate_verify

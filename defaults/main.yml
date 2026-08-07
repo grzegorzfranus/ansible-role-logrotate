@@ -13,7 +13,7 @@
 #   1. General Settings
 #   2. Main Logrotate Configuration
 #   3. Per-Rule Management
-#   4. Role Control
+#   4. Role Lifecycle
 # =============================================================================
 
 # -----------------------------------------------------------------------------
@@ -209,11 +209,8 @@ logrotate_rules:
 #     state: present                      # present|absent
 
 # -----------------------------------------------------------------------------
-# 4. Role Control
+# 4. Role Lifecycle
 # -----------------------------------------------------------------------------
-# Control which parts of the role to execute
-# Valid values: all, install, configure, logrotate
-logrotate_role_action: "all"
 
 # Whether a failed logrotate dry-run verification aborts the role run
 # Set to false on hosts with pre-existing third-party rules in /etc/logrotate.d

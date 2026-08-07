@@ -95,7 +95,6 @@ logrotate_olddir_group: "root"
 logrotate_olddir_mode: "0755"
 # logrotate_rules: 6 system rules pre-configured by default (rsyslog, wtmp,
 # btmp, apt, unattended-upgrades, dpkg) — see defaults/main.yml
-logrotate_role_action: "all"
 logrotate_fail_on_verify_error: true
 ```
 
@@ -163,11 +162,10 @@ logrotate_fail_on_verify_error: true
 | `size` | Log size threshold triggering rotation (e.g. `10M`) | `str` |
 | `su` | User and group string used to run rotation scripts (e.g. `root syslog`) | `str` |
 
-### 4. Role Control
+### 4. Role Lifecycle
 
 | Variable | Description | Default |
 |---|---|---|
-| `logrotate_role_action` | Action selector controlling role execution scope (`all`, `install`, `configure`, `logrotate`) | `"all"` |
 | `logrotate_fail_on_verify_error` | Whether a failed logrotate dry-run verification aborts the role run | `true` |
 
 ### 5. Internal Constants (`vars/*.yml`)
