@@ -93,7 +93,9 @@ logrotate_olddir_create_enabled: true
 logrotate_olddir_owner: "root"
 logrotate_olddir_group: "root"
 logrotate_olddir_mode: "0755"
-logrotate_rules: []
+# 6 system rules pre-configured by default: rsyslog, wtmp, btmp, apt,
+# unattended-upgrades, dpkg (see defaults/main.yml for full definitions)
+logrotate_rules: [...]
 logrotate_role_action: "all"
 ```
 
@@ -186,7 +188,7 @@ logrotate_role_action: "all"
 
 ## 📤 Role Output
 
-This role does not set any public output facts. All internal facts use the double-underscore prefix.
+This role does not set any public output facts. Task-level registered variables use the `__logrotate_` prefix; role constants are defined in `vars/`.
 
 ## 🔍 Verification
 
@@ -261,39 +263,53 @@ cat /var/lib/logrotate/status
 
 ```text
 ansible-role-logrotate/
-├── .ansible-lint
-├── .gitignore
-├── .yamllint
-├── CHANGELOG.md
-├── LICENSE
-├── README.md
+├── .github/
+│   ├── ISSUE_TEMPLATE/                # Issue templates for bug, feature, task
+│   │   ├── bug_report.yml
+│   │   ├── config.yml
+│   │   ├── feature_request.yml
+│   │   └── task.yml
+│   ├── PULL_REQUEST_TEMPLATE/         # Pull request description template
+│   │   └── pull_request_template.md
+│   ├── workflows/
+│   │   ├── ci.yml                     # CI pipeline
+│   │   └── release.yml                # Release Please + Galaxy publish
+│   └── dependabot.yml                 # Dependabot configuration for GitHub Actions
+├── .ansible-lint                      # Ansible-lint configuration
+├── .gitignore                         # Git ignore patterns
+├── .release-please-manifest.json      # Release Please manifest tracking release version
+├── .yamllint                          # Yamllint configuration
+├── CHANGELOG.md                       # Automatically generated release changelog
+├── LICENSE                            # License file (Apache-2.0)
+├── README.md                          # Role documentation
 ├── defaults/
-│   └── main.yml
+│   └── main.yml                       # Default variables
 ├── handlers/
-│   └── main.yml
+│   └── main.yml                       # Service handlers
 ├── meta/
-│   ├── argument_specs.yml
-│   └── main.yml
+│   ├── argument_specs.yml             # Declarative argument specifications
+│   └── main.yml                       # Role Galaxy metadata
 ├── molecule/
 │   └── default/
-│       ├── converge.yml
-│       ├── molecule.yml
-│       ├── prepare.yml
-│       └── verify.yml
+│       ├── converge.yml               # Role execution playbook
+│       ├── molecule.yml               # Test configuration
+│       ├── prepare.yml                # Test environment preparation
+│       └── verify.yml                 # Verification assertions
+├── release-please-config.json         # Release Please release configuration
 ├── tasks/
-│   ├── assert.yml
-│   ├── configure.yml
-│   ├── install.yml
-│   ├── main.yml
-│   ├── rules.yml
-│   └── verify.yml
+│   ├── assert.yml                     # Runtime variable assertions
+│   ├── configure.yml                  # Main configuration management
+│   ├── install.yml                    # Package installation
+│   ├── main.yml                       # Main orchestration and flow control
+│   ├── rules.yml                      # Drop-in rules management
+│   └── verify.yml                     # Configuration verification (dry-run)
 ├── templates/
-│   ├── logrotate.conf.j2
-│   └── logrotate_rule.j2
+│   ├── logrotate.conf.j2              # Main logrotate configuration template
+│   └── logrotate_rule.j2              # Per-rule template for /etc/logrotate.d
 └── vars/
-    ├── debian.yml
-    ├── main.yml
-    └── redhat.yml
+    ├── debian.yml                     # Debian-specific variables
+    ├── main.yml                       # Common variables/constants
+    └── redhat.yml                     # RedHat-specific variables
 ```
 
 ## 🏷️ Tags
@@ -366,6 +382,9 @@ Automated release workflow driven by Release Please:
                 /usr/bin/systemctl reload nginx || true
             state: present
 ```
+
+> [!WARNING]
+> Overriding `logrotate_rules` replaces the entire list of managed rules rather than merging with defaults. To retain default system log rules (`rsyslog`, `wtmp`, `btmp`, `apt`, `unattended-upgrades`, `dpkg`), include their definitions alongside your custom rules in your playbook or `group_vars`.
 
 ## 🤝 Contributing
 
