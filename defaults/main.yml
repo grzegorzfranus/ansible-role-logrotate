@@ -6,7 +6,9 @@
 # These values can be overridden in playbooks or inventory.
 #
 # Supported OS distributions:
+# - Ubuntu 26.04 (Resolute) and variants
 # - Ubuntu 24.04 (Noble) and variants
+# - Debian 13 (Trixie) and variants
 # - Debian 12 (Bookworm) and variants
 #
 # Sections:
@@ -26,6 +28,12 @@ logrotate_status_file: "/var/lib/logrotate/status"
 # Whether this role should manage the main /etc/logrotate.conf configuration file
 # Valid values: true, false
 logrotate_manage_main_conf: true
+
+# Whether the role validates that the target host runs a supported distribution
+# Set to false to run the role on a Debian derivative not listed in
+# logrotate_supported_platforms, accepting that it is untested
+# Valid values: true, false
+logrotate_os_support_check_enabled: true
 
 # -----------------------------------------------------------------------------
 # 2. Main Logrotate Configuration

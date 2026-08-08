@@ -9,7 +9,34 @@
 # -----------------------------------------------------------------------------
 # 1. General Settings
 # -----------------------------------------------------------------------------
-# Validates status file path location.
+# Validates target OS platform support and status file path location.
+
+- name: Logrotate | assert | Validate logrotate_os_support_check_enabled boolean format
+  ansible.builtin.assert:
+    that:
+      - logrotate_os_support_check_enabled is defined
+      - logrotate_os_support_check_enabled is boolean
+    fail_msg: "logrotate_os_support_check_enabled must be a boolean (true or false)"
+    success_msg: "logrotate_os_support_check_enabled validated: {{ logrotate_os_support_check_enabled }}"
+
+- name: Logrotate | assert | Validate target operating system is supported
+  ansible.builtin.assert:
+    that:
+      - ansible_facts['os_family'] is defined
+      - ansible_facts['os_family'] == 'Debian'
+      - ansible_facts['distribution'] is defined
+      - ansible_facts['distribution_major_version'] is defined
+      - (ansible_facts['distribution'] ~ '-' ~ ansible_facts['distribution_major_version']) in logrotate_supported_platforms
+    fail_msg: >-
+      Unsupported operating system:
+      {{ ansible_facts['distribution'] | default('unknown') }}
+      {{ ansible_facts['distribution_version'] | default('unknown') }}.
+      Supported platforms: {{ logrotate_supported_platforms | join(', ') }}.
+      Set logrotate_os_support_check_enabled to false to override at your own risk.
+    success_msg: >-
+      Operating system supported:
+      {{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_version'] }}
+  when: logrotate_os_support_check_enabled | bool
 
 - name: Logrotate | assert | Validate logrotate_status_file path format
   ansible.builtin.assert:
