@@ -32,10 +32,13 @@
       {{ ansible_facts['distribution'] | default('unknown') }}
       {{ ansible_facts['distribution_version'] | default('unknown') }}.
       Supported platforms: {{ logrotate_supported_platforms | join(', ') }}.
-      Set logrotate_os_support_check_enabled to false to override at your own risk.
+      To override at your own risk, set logrotate_os_support_check_enabled to a boolean false
+      in your playbook or inventory (note: -e logrotate_os_support_check_enabled=false passes
+      a string and will be rejected; use -e '{"logrotate_os_support_check_enabled": false}').
     success_msg: >-
       Operating system supported:
-      {{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_version'] }}
+      {{ ansible_facts['distribution'] }}
+      {{ ansible_facts['distribution_version'] | default(ansible_facts['distribution_major_version']) }}
   when: logrotate_os_support_check_enabled | bool
 
 - name: Logrotate | assert | Validate logrotate_status_file path format
@@ -155,7 +158,7 @@
 # -----------------------------------------------------------------------------
 # 5. Internal Constants
 # -----------------------------------------------------------------------------
-# Validates package name and system configuration directory constants.
+# Validates package name, system configuration directory, and supported platforms constants.
 
 - name: Logrotate | assert | Validate internal configuration path constants
   ansible.builtin.assert:
@@ -173,3 +176,12 @@
       - logrotate_main_config_path is match('^/.+')
     fail_msg: "Package name must be string, and configuration paths must be non-empty absolute paths"
     success_msg: "Internal constants validated: package={{ logrotate_package_name }}, d_dir={{ logrotate_d_directory_path }}, main={{ logrotate_main_config_path }}"
+
+- name: Logrotate | assert | Validate logrotate_supported_platforms constant
+  ansible.builtin.assert:
+    that:
+      - logrotate_supported_platforms is defined
+      - logrotate_supported_platforms is iterable
+      - logrotate_supported_platforms | length > 0
+    fail_msg: "logrotate_supported_platforms must be a non-empty list of '<Distribution>-<major_version>' strings"
+    success_msg: "logrotate_supported_platforms validated with {{ logrotate_supported_platforms | length }} entries"

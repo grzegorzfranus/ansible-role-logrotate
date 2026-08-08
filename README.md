@@ -46,6 +46,9 @@ Officially supported operating systems for this role:
 | Debian | 13 (Trixie) | ![✓](https://img.shields.io/badge/✓-brightgreen.svg) |
 | Debian | 12 (Bookworm) | ![✓](https://img.shields.io/badge/✓-brightgreen.svg) |
 
+> [!NOTE]
+> The role validates the target distribution before making any changes and aborts on unsupported systems. To run it on an untested Debian derivative, set `logrotate_os_support_check_enabled: false` in your playbook or inventory. Pass it as a real boolean — `-e logrotate_os_support_check_enabled=false` supplies a string and is rejected by input validation; use `-e '{"logrotate_os_support_check_enabled": false}'` if you need a command-line override.
+
 ### Setup module
 
 The role relies on standard Ansible facts gathered by `ansible.builtin.setup` (`ansible_facts['distribution']`, `ansible_facts['os_family']`, `ansible_facts['distribution_major_version']`). If fact gathering is disabled in your playbook, ensure equivalent facts are supplied.
