@@ -11,7 +11,7 @@ This Ansible role installs and configures `logrotate`, managing the main `/etc/l
 - 🔄 **Log Rotation Management**: Installs and manages the native `logrotate` package.
 - 🔧 **Main Configuration**: Renders global `/etc/logrotate.conf` with validation and backup capabilities.
 - 📁 **Drop-in Rules**: Renders and manages per-application rotation policies under `/etc/logrotate.d/*`.
-- 🧪 **Container Testing**: Full Molecule integration test suite on Docker across Ubuntu 24.04 and Debian 12.
+- 🧪 **Container Testing**: Full Molecule integration test suite on Docker across Ubuntu 26.04/24.04 and Debian 13/12.
 - 🛡️ **Declarative Validation**: Dual-layer input validation with `meta/argument_specs.yml` and `tasks/assert.yml`.
 
 ## 🎯 Architecture
@@ -41,12 +41,14 @@ Officially supported operating systems for this role:
 
 | OS Family | Version | Status |
 |---|---|---|
+| Ubuntu | 26.04 (Resolute) | ![✓](https://img.shields.io/badge/✓-brightgreen.svg) |
 | Ubuntu | 24.04 (Noble) | ![✓](https://img.shields.io/badge/✓-brightgreen.svg) |
+| Debian | 13 (Trixie) | ![✓](https://img.shields.io/badge/✓-brightgreen.svg) |
 | Debian | 12 (Bookworm) | ![✓](https://img.shields.io/badge/✓-brightgreen.svg) |
 
 ### Setup module
 
-The role relies on standard Ansible facts gathered by `ansible.builtin.setup` (`ansible_facts['distribution']`, `ansible_facts['os_family']`). If fact gathering is disabled in your playbook, ensure equivalent facts are supplied.
+The role relies on standard Ansible facts gathered by `ansible.builtin.setup` (`ansible_facts['distribution']`, `ansible_facts['os_family']`, `ansible_facts['distribution_major_version']`). If fact gathering is disabled in your playbook, ensure equivalent facts are supplied.
 
 ### Root access
 
@@ -86,6 +88,7 @@ The role comes pre-configured with safe, production-ready defaults:
 ```yaml
 logrotate_status_file: "/var/lib/logrotate/status"
 logrotate_manage_main_conf: true
+logrotate_os_support_check_enabled: true
 logrotate_frequency: "weekly"
 logrotate_rotate: 4
 logrotate_compress: false
@@ -114,6 +117,7 @@ logrotate_fail_on_verify_error: true
 |---|---|---|
 | `logrotate_status_file` | Path to logrotate status file used for validation and execution runs | `/var/lib/logrotate/status` |
 | `logrotate_manage_main_conf` | Whether this role should manage the main `/etc/logrotate.conf` file | `true` |
+| `logrotate_os_support_check_enabled` | Whether the role validates that the target host runs a supported distribution | `true` |
 
 ### 2. Main Logrotate Configuration
 
@@ -189,6 +193,7 @@ logrotate_fail_on_verify_error: true
 | `logrotate_package_name` | Package name installed via apt | `"logrotate"` |
 | `logrotate_d_directory_path` | Directory containing drop-in rules | `"/etc/logrotate.d"` |
 | `logrotate_main_config_path` | Path to main logrotate configuration file | `"/etc/logrotate.conf"` |
+| `logrotate_supported_platforms` | Supported distribution and major version combinations validated by the OS support gate | `["Debian-12", "Debian-13", "Ubuntu-24", "Ubuntu-26"]` |
 
 ## 📌 Role Properties
 
@@ -306,11 +311,16 @@ ansible-role-logrotate/
 │   ├── argument_specs.yml             # Declarative argument specifications
 │   └── main.yml                       # Role Galaxy metadata
 ├── molecule/
-│   └── default/
-│       ├── converge.yml               # Role execution playbook
+│   ├── default/
+│   │   ├── converge.yml               # Role execution playbook
+│   │   ├── molecule.yml               # Test configuration
+│   │   ├── prepare.yml                # Test environment preparation
+│   │   └── verify.yml                 # Verification assertions
+│   └── uninstall/
+│       ├── converge.yml               # Role removal execution playbook
 │       ├── molecule.yml               # Test configuration
 │       ├── prepare.yml                # Test environment preparation
-│       └── verify.yml                 # Verification assertions
+│       └── verify.yml                 # Uninstall verification assertions
 ├── release-please-config.json         # Release Please release configuration
 ├── tasks/
 │   ├── assert.yml                     # Runtime variable assertions
@@ -357,7 +367,7 @@ Executes automatically on every pull request targeting `main`:
 4. **Ansible Best Practices** (`ansible-lint`) — checks role standards and CoP rules against `.ansible-lint`.
 5. **Galaxy Metadata Validation** — verifies structure of `meta/main.yml`.
 6. **Security Scanning** — scans for hardcoded secrets and IaC vulnerabilities.
-7. **Molecule Matrix Integration** — runs Molecule tests across Ubuntu 24.04 and Debian 12 containers.
+7. **Molecule Matrix Integration** — runs Molecule tests across Ubuntu 26.04, Ubuntu 24.04, Debian 13, and Debian 12 containers.
 8. **Merge Check Gate** (`merge-check`) — aggregates status across all jobs as a single required check.
 
 ### Release & Publish Pipeline (`ansible-publish.yml`)
