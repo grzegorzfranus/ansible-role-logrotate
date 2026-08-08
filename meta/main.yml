@@ -19,9 +19,11 @@ galaxy_info:
   platforms:
     - name: Debian
       versions:
+        - "trixie"
         - "bookworm"
     - name: Ubuntu
       versions:
+        - "resolute"
         - "noble"
 
   galaxy_tags:

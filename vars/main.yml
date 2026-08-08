@@ -8,6 +8,7 @@
 # Sections:
 #   1. Package Settings
 #   2. Logrotate Configuration Paths
+#   3. Supported Platforms
 # =============================================================================
 
 # -----------------------------------------------------------------------------
@@ -27,3 +28,17 @@ logrotate_d_directory_path: "/etc/logrotate.d"
 # Path to the main logrotate configuration file
 # Valid values: absolute file path string starting with /
 logrotate_main_config_path: "/etc/logrotate.conf"
+
+# -----------------------------------------------------------------------------
+# 3. Supported Platforms
+# -----------------------------------------------------------------------------
+# List of distribution and major version combinations officially supported and
+# covered by the Molecule test matrix. Format: "<Distribution>-<major_version>".
+# Keep synchronized with meta/main.yml platforms, the README OS support table,
+# and the molecule-distros matrix in .github/workflows/ci.yml
+# Valid values: list of "<Distribution>-<major_version>" strings
+logrotate_supported_platforms:
+  - "Debian-12"
+  - "Debian-13"
+  - "Ubuntu-24"
+  - "Ubuntu-26"
