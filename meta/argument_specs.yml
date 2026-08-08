@@ -85,16 +85,17 @@ argument_specs:
         description: "List of per-application log rotation rule configurations."
         type: list
         elements: dict
+        default: []
         options:
           name:
             description: "Name of the logrotate rule file created under /etc/logrotate.d/."
             type: str
             required: true
           paths:
-            description: "List of target log file paths or glob expressions to rotate."
+            description: "List of target log file paths or glob expressions to rotate (required only for rendered rules)."
             type: list
             elements: str
-            required: true
+            required: false
           state:
             description: "State of the drop-in logrotate rule file."
             type: str
@@ -160,15 +161,17 @@ argument_specs:
               su:
                 description: "User and group used to run rotation scripts."
                 type: str
-      logrotate_role_action:
-        description: "Execution scope action selector."
+      logrotate_state:
+        description: "Desired lifecycle state of the logrotate configuration managed by this role."
         type: str
-        default: "all"
+        default: "present"
         choices:
-          - all
-          - install
-          - configure
-          - logrotate
+          - present
+          - absent
+      logrotate_remove_package:
+        description: "Whether the 'absent' state also uninstalls the logrotate package."
+        type: bool
+        default: false
       logrotate_fail_on_verify_error:
         description: "Whether a failed logrotate dry-run verification aborts the role run."
         type: bool

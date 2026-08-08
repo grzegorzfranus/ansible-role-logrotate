@@ -19,7 +19,7 @@ This Ansible role installs and configures `logrotate`, managing the main `/etc/l
 The role provides a complete log rotation management layout:
 
 ```text
-Config Vars → main.yml → install logrotate → template /etc/logrotate.conf → template /etc/logrotate.d/*
+include_vars → assert → [present: install → configure → rules → verify | absent: remove]
 ```
 
 ### Delivery Method Decision: Native OS Package
@@ -72,6 +72,13 @@ ansible-playbook -i inventory playbook.yml
 
 ## ⚙️ Configuration
 
+### ⬆️ Upgrading from 1.x
+
+Version 2.0.0 introduces two breaking changes:
+
+1. **`logrotate_role_action` removed**: Execution scope is now controlled exclusively via Ansible tags (`logrotate_setup`, `logrotate_install`, `logrotate_configure`, `logrotate_rules`, `logrotate_verify`, `logrotate_remove`).
+2. **`logrotate_rules` defaults to `[]`**: The role no longer manages any drop-in rules out of the box. To retain the six system rules (`rsyslog`, `wtmp`, `btmp`, `apt`, `unattended-upgrades`, `dpkg`) previously enabled by default, copy their definitions from [Reproducing Debian/Ubuntu System Log Rules](#reproducing-debianubuntu-system-log-rules) into your playbook or inventory. Existing files under `/etc/logrotate.d` are left untouched unless explicitly managed.
+
 ### Default Configuration
 
 The role comes pre-configured with safe, production-ready defaults:
@@ -93,9 +100,9 @@ logrotate_olddir_create_enabled: true
 logrotate_olddir_owner: "root"
 logrotate_olddir_group: "root"
 logrotate_olddir_mode: "0755"
-# logrotate_rules: 6 system rules pre-configured by default (rsyslog, wtmp,
-# btmp, apt, unattended-upgrades, dpkg) — see defaults/main.yml
-logrotate_role_action: "all"
+logrotate_rules: []
+logrotate_state: "present"
+logrotate_remove_package: false
 logrotate_fail_on_verify_error: true
 ```
 
@@ -131,14 +138,14 @@ logrotate_fail_on_verify_error: true
 
 | Variable | Description | Default |
 |---|---|---|
-| `logrotate_rules` | List of application-specific rule dictionaries rendered under `/etc/logrotate.d/<name>` | `[...]` (see `defaults/main.yml`) |
+| `logrotate_rules` | List of application-specific rule dictionaries rendered under `/etc/logrotate.d/<name>`. Empty by default: the role manages no drop-in rules unless explicitly configured | `[]` |
 
 #### Per-rule Item Fields (`logrotate_rules[]`)
 
 | Field | Description | Required | Default |
 |---|---|---|---|
 | `name` | Rule file name under `/etc/logrotate.d/` | Yes | - |
-| `paths` | List of target log file paths or glob expressions | Yes | - |
+| `paths` | List of target log file paths or glob expressions (not required for entries whose `state` is `absent` or when `logrotate_state` is `absent`) | Only when rendered | - |
 | `state` | Desired rule file state (`present` or `absent`) | No | `"present"` |
 | `options` | Dictionary of per-rule options (see suboptions below) | No | `{}` |
 
@@ -163,12 +170,17 @@ logrotate_fail_on_verify_error: true
 | `size` | Log size threshold triggering rotation (e.g. `10M`) | `str` |
 | `su` | User and group string used to run rotation scripts (e.g. `root syslog`) | `str` |
 
-### 4. Role Control
+### 4. Role Lifecycle
 
 | Variable | Description | Default |
 |---|---|---|
-| `logrotate_role_action` | Action selector controlling role execution scope (`all`, `install`, `configure`, `logrotate`) | `"all"` |
+| `logrotate_state` | Desired lifecycle state of the logrotate configuration managed by this role (`present`, `absent`) | `"present"` |
+| `logrotate_remove_package` | Whether the `absent` state also uninstalls the logrotate package | `false` |
 | `logrotate_fail_on_verify_error` | Whether a failed logrotate dry-run verification aborts the role run | `true` |
+
+> [!WARNING]
+> Enabling `logrotate_remove_package: true` on Debian/Ubuntu systems may remove the base `logrotate` system package and pull in or remove unrelated system dependencies. Use with caution.
+> Note: The `absent` state removes managed drop-in rule files under `/etc/logrotate.d/`, but intentionally leaves the distribution-owned `/etc/logrotate.conf` untouched.
 
 ### 5. Internal Constants (`vars/*.yml`)
 
@@ -305,15 +317,14 @@ ansible-role-logrotate/
 │   ├── configure.yml                  # Main configuration management
 │   ├── install.yml                    # Package installation
 │   ├── main.yml                       # Main orchestration and flow control
+│   ├── remove.yml                     # Role removal tasks
 │   ├── rules.yml                      # Drop-in rules management
 │   └── verify.yml                     # Configuration verification (dry-run)
 ├── templates/
 │   ├── logrotate.conf.j2              # Main logrotate configuration template
 │   └── logrotate_rule.j2              # Per-rule template for /etc/logrotate.d
 └── vars/
-    ├── debian.yml                     # Debian-specific variables
-    ├── main.yml                       # Common variables/constants
-    └── redhat.yml                     # RedHat-specific variables
+    └── main.yml                       # Common variables/constants
 ```
 
 ## 🏷️ Tags
@@ -330,6 +341,7 @@ All role-specific tags are prefixed with `logrotate_` to prevent collisions acro
 | `logrotate_configure` | Main `/etc/logrotate.conf` configuration tasks |
 | `logrotate_rules` | Drop-in rule management under `/etc/logrotate.d` |
 | `logrotate_verify` | Dry-run configuration verification tasks |
+| `logrotate_remove` | Tasks executing role removal and cleanup when `logrotate_state` is `absent` |
 
 ## CI/CD Pipeline
 
@@ -387,16 +399,151 @@ Automated release workflow driven by Release Please:
             state: present
 ```
 
-> [!WARNING]
-> Overriding `logrotate_rules` replaces the entire list of managed rules rather than merging with defaults. To retain default system log rules (`rsyslog`, `wtmp`, `btmp`, `apt`, `unattended-upgrades`, `dpkg`), include their definitions alongside your custom rules in your playbook or `group_vars`.
+### Removing Managed Drop-in Rules
+
+When removing rules you only need to declare each rule's `name` — `paths` are not required because nothing is rendered.
+
+```yaml
+---
+- hosts: all
+  become: true
+  roles:
+    - role: grzegorzfranus.logrotate
+      vars:
+        logrotate_state: "absent"
+        logrotate_rules:
+          - name: nginx
+        logrotate_remove_package: false
+```
+
+### Reproducing Debian/Ubuntu System Log Rules
+
+Prior to version 2.0.0, this role included six pre-configured drop-in rules by default. To preserve or opt into this behavior, define `logrotate_rules` in your playbook or inventory:
+
+```yaml
+---
+- hosts: all
+  become: true
+  roles:
+    - role: grzegorzfranus.logrotate
+      vars:
+        logrotate_rules:
+          # Core system logs (rsyslog-managed)
+          - name: rsyslog
+            paths:
+              - /var/log/syslog
+              - /var/log/mail.log
+              - /var/log/kern.log
+              - /var/log/auth.log
+              - /var/log/user.log
+              - /var/log/cron.log
+            options:
+              weekly: true
+              rotate: 4
+              compress: true
+              delaycompress: false
+              missingok: true
+              notifempty: true
+              su: "root syslog"
+              sharedscripts: true
+              postrotate: |
+                /usr/lib/rsyslog/rsyslog-rotate || true
+            state: present
+
+          # Login accounting (wtmp)
+          - name: wtmp
+            paths:
+              - /var/log/wtmp
+            options:
+              monthly: true
+              rotate: 1
+              create: "0664 root utmp"
+              missingok: true
+              notifempty: true
+              compress: false
+            state: present
+
+          # Failed login accounting (btmp)
+          - name: btmp
+            paths:
+              - /var/log/btmp
+            options:
+              monthly: true
+              rotate: 1
+              create: "0600 root utmp"
+              missingok: true
+              notifempty: true
+              compress: false
+            state: present
+
+          # APT logs
+          - name: apt
+            paths:
+              - /var/log/apt/term.log
+              - /var/log/apt/history.log
+            options:
+              monthly: true
+              rotate: 12
+              compress: false
+              delaycompress: false
+              missingok: true
+              notifempty: true
+              create: "0640 root adm"
+            state: present
+
+          # Unattended upgrades logs
+          - name: unattended-upgrades
+            paths:
+              - /var/log/unattended-upgrades/unattended-upgrades.log
+              - /var/log/unattended-upgrades/unattended-upgrades-shutdown.log
+            options:
+              monthly: true
+              rotate: 6
+              compress: false
+              delaycompress: false
+              missingok: true
+              notifempty: true
+              create: "0640 root adm"
+            state: present
+
+          # DPKG related logs
+          - name: dpkg
+            paths:
+              - /var/log/dpkg.log
+              - /var/log/alternatives.log
+            options:
+              monthly: true
+              rotate: 12
+              compress: false
+              delaycompress: false
+              missingok: true
+              notifempty: true
+              create: "0640 root adm"
+            state: present
+```
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please follow these guidelines when submitting changes:
+Contributions, bug reports, and feature requests are welcome!
 
-1. **Branch Naming Convention**: Name feature branches using standard prefixes: `feature/`, `bugfix/`, `fix/`, `hotfix/`, `release/`, `chore/`, `docs/`, `refactor/`, `test/`, `build/`, `ci/`, `perf/`, `revert/`. Example: `refactor/align-with-ansible-standards`.
-2. **Conventional Commits**: Format commit messages using standard prefixes: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`.
-3. **Local Quality Gates**: Run `yamllint .`, `ansible-lint`, and `molecule test` locally before submitting a Pull Request.
+- Fork the repository and create your branch from `main`
+- Use [Conventional Commits](https://www.conventionalcommits.org/) for commit messages:
+  - `feat:` — new features
+  - `fix:` — bug fixes
+  - `refactor:` — code refactoring
+  - `docs:` — documentation changes
+  - `ci:` — CI/CD pipeline updates
+  - `build:` — dependency and build configuration updates
+  - `chore:` — maintenance tasks
+  - `test:` — test additions or corrections
+  - `perf:` — performance improvements
+  - `revert:` — code reverts
+  - `style:` — code formatting and style
+- Use branch naming convention: `feature/`, `bugfix/`, `fix/`, `hotfix/`, `release/`, `chore/`, `docs/`, `refactor/`, `test/`, `build/`, `ci/`, `perf/`, `revert/`
+- Ensure your code passes all CI checks (YAML lint, Ansible lint, Molecule tests)
+- Centralized workflows from [github-workflows](https://github.com/grzegorzfranus/github-workflows) are used to run CI/CD pipelines
+- Submit a pull request describing your changes (a template is available under `.github/PULL_REQUEST_TEMPLATE/pull_request_template.md` to help structure your PR description)
+- For major changes, please open an issue first to discuss what you would like to change (issue templates for bug reports, feature requests, and tasks are available under `.github/ISSUE_TEMPLATE/`)
 
 ## 📝 License
 

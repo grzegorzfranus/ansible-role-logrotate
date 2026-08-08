@@ -49,21 +49,34 @@
     fail_msg: "logrotate_rules must be a list"
     success_msg: "logrotate_rules list structure validated"
 
-- name: Logrotate | assert | Validate each rule fields and non-empty paths
+- name: Logrotate | assert | Validate each rule declares a non-empty name
   ansible.builtin.assert:
     that:
       - item.name is defined
       - item.name is string
       - item.name | length > 0
-      - item.paths is defined
-      - item.paths is iterable
-      - item.paths | length > 0
-    fail_msg: "Rule '{{ item.name | default('unnamed') }}' must have a non-empty name string and a non-empty paths list"
-    success_msg: "Rule '{{ item.name }}' fields validated with {{ item.paths | length }} paths"
+    fail_msg: "Every entry in logrotate_rules must declare a non-empty name string"
+    success_msg: "Rule '{{ item.name }}' name validated"
   loop: "{{ logrotate_rules }}"
   loop_control:
     label: "{{ item.name | default('unnamed') }}"
   when: logrotate_rules | length > 0
+
+- name: Logrotate | assert | Validate rendered rules declare non-empty paths
+  ansible.builtin.assert:
+    that:
+      - item.paths is defined
+      - item.paths is iterable
+      - item.paths | length > 0
+    fail_msg: "Rule '{{ item.name }}' is rendered and must declare a non-empty paths list"
+    success_msg: "Rule '{{ item.name }}' paths validated with {{ item.paths | length }} entries"
+  loop: "{{ logrotate_rules }}"
+  loop_control:
+    label: "{{ item.name | default('unnamed') }}"
+  when:
+    - logrotate_rules | length > 0
+    - logrotate_state | lower == 'present'
+    - item.state | default('present') == 'present'
 
 - name: Logrotate | assert | Validate olddir path in rule options when present
   ansible.builtin.assert:
@@ -82,19 +95,27 @@
     - item.options.olddir is defined
 
 # -----------------------------------------------------------------------------
-# 4. Role Control
+# 4. Role Lifecycle
 # -----------------------------------------------------------------------------
-# Validates execution scope and verification error handling controls.
+# Validates lifecycle state, package removal opt-in, and verification error handling.
 
-- name: Logrotate | assert | Validate logrotate_role_action cross-field consistency
+- name: Logrotate | assert | Validate logrotate_state value
   ansible.builtin.assert:
     that:
-      - logrotate_role_action is defined
-      - logrotate_role_action is string
-      - logrotate_role_action | length > 0
-      - logrotate_role_action in ['all', 'install', 'configure', 'logrotate']
-    fail_msg: "logrotate_role_action must be one of: 'all', 'install', 'configure', 'logrotate'"
-    success_msg: "logrotate_role_action validated: {{ logrotate_role_action }}"
+      - logrotate_state is defined
+      - logrotate_state is string
+      - logrotate_state | length > 0
+      - logrotate_state | lower in ['present', 'absent']
+    fail_msg: "logrotate_state must be one of: 'present', 'absent'"
+    success_msg: "logrotate_state validated: {{ logrotate_state }}"
+
+- name: Logrotate | assert | Validate logrotate_remove_package boolean format
+  ansible.builtin.assert:
+    that:
+      - logrotate_remove_package is defined
+      - logrotate_remove_package is boolean
+    fail_msg: "logrotate_remove_package must be a boolean (true or false)"
+    success_msg: "logrotate_remove_package validated: {{ logrotate_remove_package }}"
 
 - name: Logrotate | assert | Validate logrotate_fail_on_verify_error boolean format
   ansible.builtin.assert:

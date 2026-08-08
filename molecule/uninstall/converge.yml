@@ -1,0 +1,88 @@
+---
+# =============================================================================
+# Ansible Role: Logrotate - Molecule Uninstall Convergence Playbook
+# =============================================================================
+# This playbook tests the installation and subsequent removal lifecycle:
+# 1. Play 1: Applies role with logrotate_state: "present" and a sample rule.
+# 2. Play 2: Applies role with logrotate_state: "absent" to remove managed rule.
+# =============================================================================
+
+- name: molecule | Converge (Install)
+  hosts: all
+  gather_facts: true
+
+  vars:
+    logrotate_state: "present"
+    logrotate_rules:
+      - name: sample
+        paths:
+          - /var/log/sample/*.log
+        options:
+          rotate: 3
+          weekly: true
+          compress: true
+          missingok: true
+          notifempty: true
+          create: "0640 root adm"
+        state: present
+
+  pre_tasks:
+    # Package Cache Update (Debian family)
+    - name: Converge | Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 600
+      become: true
+      changed_when: false
+      when: ansible_os_family == 'Debian'
+
+    # Package Cache Update (RedHat family)
+    - name: Converge | Update dnf cache
+      ansible.builtin.dnf:
+        update_cache: true
+      become: true
+      changed_when: false
+      when: ansible_os_family == 'RedHat'
+
+    # System Initialization
+    - name: Converge | Wait for systemd to complete initialization
+      ansible.builtin.command: systemctl is-system-running
+      register: __logrotate_systemctl_status
+      until: >
+        'running' in __logrotate_systemctl_status.stdout or
+        'degraded' in __logrotate_systemctl_status.stdout
+      retries: 30
+      delay: 5
+      when: ansible_service_mgr == 'systemd'
+      changed_when: false
+      failed_when: __logrotate_systemctl_status.rc > 1
+
+  tasks:
+    - name: Converge | Include logrotate role (present)
+      ansible.builtin.include_role:
+        name: "{{ playbook_dir }}/../.."
+
+- name: molecule | Converge (Remove)
+  hosts: all
+  gather_facts: true
+
+  vars:
+    logrotate_state: "absent"
+    logrotate_remove_package: false
+    logrotate_rules:
+      - name: sample
+        paths:
+          - /var/log/sample/*.log
+        options:
+          rotate: 3
+          weekly: true
+          compress: true
+          missingok: true
+          notifempty: true
+          create: "0640 root adm"
+        state: present
+
+  tasks:
+    - name: Converge | Include logrotate role (absent)
+      ansible.builtin.include_role:
+        name: "{{ playbook_dir }}/../.."

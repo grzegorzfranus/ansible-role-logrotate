@@ -1,0 +1,24 @@
+---
+# =============================================================================
+# Ansible Role: Logrotate - Tasks: Removal
+# =============================================================================
+# Removes drop-in rules managed by this role and, when explicitly requested,
+# uninstalls the logrotate package. The distribution-owned main configuration
+# file /etc/logrotate.conf is intentionally left untouched.
+# =============================================================================
+
+- name: Logrotate | remove | Remove managed drop-in rules
+  become: true
+  ansible.builtin.file:
+    path: "{{ logrotate_d_directory_path }}/{{ item.name }}"
+    state: absent
+  loop: "{{ logrotate_rules }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Logrotate | remove | Uninstall logrotate package
+  become: true
+  ansible.builtin.package:
+    name: "{{ logrotate_package_name }}"
+    state: absent
+  when: logrotate_remove_package | bool

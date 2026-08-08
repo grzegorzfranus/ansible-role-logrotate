@@ -13,7 +13,7 @@
 #   1. General Settings
 #   2. Main Logrotate Configuration
 #   3. Per-Rule Management
-#   4. Role Control
+#   4. Role Lifecycle
 # =============================================================================
 
 # -----------------------------------------------------------------------------
@@ -90,100 +90,9 @@ logrotate_olddir_mode: "0755"
 # 3. Per-Rule Management
 # -----------------------------------------------------------------------------
 # Define application-specific rules rendered into /etc/logrotate.d/<name>
-# Valid values: list of dictionaries conforming to logrotate_rules schema
-logrotate_rules:
-  # Core system logs (rsyslog-managed)
-  - name: rsyslog
-    paths:
-      - /var/log/syslog
-      - /var/log/mail.log
-      - /var/log/kern.log
-      - /var/log/auth.log
-      - /var/log/user.log
-      - /var/log/cron.log
-    options:
-      weekly: true
-      rotate: 4
-      compress: true
-      delaycompress: false
-      missingok: true
-      notifempty: true
-      su: "root syslog"
-      sharedscripts: true
-      postrotate: |
-        /usr/lib/rsyslog/rsyslog-rotate || true
-    state: present
-
-  # Login accounting (wtmp)
-  - name: wtmp
-    paths:
-      - /var/log/wtmp
-    options:
-      monthly: true
-      rotate: 1
-      create: "0664 root utmp"
-      missingok: true
-      notifempty: true
-      compress: false
-    state: present
-
-  # Failed login accounting (btmp)
-  - name: btmp
-    paths:
-      - /var/log/btmp
-    options:
-      monthly: true
-      rotate: 1
-      create: "0600 root utmp"
-      missingok: true
-      notifempty: true
-      compress: false
-    state: present
-
-  # APT logs
-  - name: apt
-    paths:
-      - /var/log/apt/term.log
-      - /var/log/apt/history.log
-    options:
-      monthly: true
-      rotate: 12
-      compress: false
-      delaycompress: false
-      missingok: true
-      notifempty: true
-      create: "0640 root adm"
-    state: present
-
-  # Unattended upgrades logs
-  - name: unattended-upgrades
-    paths:
-      - /var/log/unattended-upgrades/unattended-upgrades.log
-      - /var/log/unattended-upgrades/unattended-upgrades-shutdown.log
-    options:
-      monthly: true
-      rotate: 6
-      compress: false
-      delaycompress: false
-      missingok: true
-      notifempty: true
-      create: "0640 root adm"
-    state: present
-
-  # DPKG related logs
-  - name: dpkg
-    paths:
-      - /var/log/dpkg.log
-      - /var/log/alternatives.log
-    options:
-      monthly: true
-      rotate: 12
-      compress: false
-      delaycompress: false
-      missingok: true
-      notifempty: true
-      create: "0640 root adm"
-    state: present
+# Empty by default: the role manages no drop-in rules unless explicitly configured
+# Valid values: list of dictionaries conforming to the logrotate_rules schema
+logrotate_rules: []
 
 # Example structure for custom rules:
 # logrotate_rules:
@@ -209,11 +118,17 @@ logrotate_rules:
 #     state: present                      # present|absent
 
 # -----------------------------------------------------------------------------
-# 4. Role Control
+# 4. Role Lifecycle
 # -----------------------------------------------------------------------------
-# Control which parts of the role to execute
-# Valid values: all, install, configure, logrotate
-logrotate_role_action: "all"
+# Desired lifecycle state of the logrotate configuration managed by this role
+# Valid values: present, absent
+logrotate_state: "present"
+
+# Whether the 'absent' state also uninstalls the logrotate package
+# Disabled by default because logrotate is a base system package on Debian/Ubuntu
+# and its removal may pull in unrelated system dependencies
+# Valid values: true, false
+logrotate_remove_package: false
 
 # Whether a failed logrotate dry-run verification aborts the role run
 # Set to false on hosts with pre-existing third-party rules in /etc/logrotate.d
