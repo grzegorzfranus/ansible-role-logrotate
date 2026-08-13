@@ -332,7 +332,7 @@ ansible-role-logrotate/
 │   └── main.yml                       # Role Galaxy metadata
 ├── molecule/
 │   ├── default/
-│   │   ├── converge.yml               # Role execution playbook (connects as non-root user 'molecule' with become: false to test privilege escalation)
+│   │   ├── converge.yml               # Role execution playbook
 │   │   ├── molecule.yml               # Test configuration
 │   │   ├── prepare.yml                # Test environment preparation
 │   │   └── verify.yml                 # Verification assertions
@@ -362,6 +362,9 @@ ansible-role-logrotate/
 └── vars/
     └── main.yml                       # Common variables/constants
 ```
+
+> [!NOTE]
+> The `molecule/default/converge.yml` playbook connects as an unprivileged user (`remote_user: molecule`, `become: false`) to ensure all role tasks requiring root privileges explicitly elevate via `become: true`. This serves as a continuous regression guard in CI against unprivileged task execution.
 
 ## 🏷️ Tags
 
