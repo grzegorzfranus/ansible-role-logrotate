@@ -175,6 +175,14 @@
     fail_msg: "logrotate_fail_on_verify_error must be a boolean (true or false)"
     success_msg: "logrotate_fail_on_verify_error validated: {{ logrotate_fail_on_verify_error }}"
 
+- name: Logrotate | assert | Validate logrotate_fail_on_foreign_verify_error boolean format
+  ansible.builtin.assert:
+    that:
+      - logrotate_fail_on_foreign_verify_error is defined
+      - logrotate_fail_on_foreign_verify_error is boolean
+    fail_msg: "logrotate_fail_on_foreign_verify_error must be a boolean (true or false)"
+    success_msg: "logrotate_fail_on_foreign_verify_error validated: {{ logrotate_fail_on_foreign_verify_error }}"
+
 # -----------------------------------------------------------------------------
 # 5. Internal Constants
 # -----------------------------------------------------------------------------

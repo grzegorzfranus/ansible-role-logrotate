@@ -111,6 +111,7 @@ logrotate_rules: []
 logrotate_state: "present"
 logrotate_remove_package: false
 logrotate_fail_on_verify_error: true
+logrotate_fail_on_foreign_verify_error: false
 ```
 
 ## 📊 Variables
@@ -186,6 +187,7 @@ logrotate_fail_on_verify_error: true
 | `logrotate_state` | Desired lifecycle state of the logrotate configuration managed by this role (`present`, `absent`) | `"present"` |
 | `logrotate_remove_package` | Whether the `absent` state also uninstalls the logrotate package | `false` |
 | `logrotate_fail_on_verify_error` | Whether a failed logrotate dry-run verification aborts the role run | `true` |
+| `logrotate_fail_on_foreign_verify_error` | Whether a failed logrotate dry-run verification due ONLY to unmanaged foreign drop-in files aborts the role run | `false` |
 
 > [!WARNING]
 > Enabling `logrotate_remove_package: true` on Debian/Ubuntu systems may remove the base `logrotate` system package and pull in or remove unrelated system dependencies. Use with caution.

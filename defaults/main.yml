@@ -148,3 +148,8 @@ logrotate_remove_package: false
 # that this role does not manage and cannot repair
 # Valid values: true, false
 logrotate_fail_on_verify_error: true
+
+# Whether a failed logrotate dry-run verification due ONLY to unmanaged foreign drop-in files aborts the role run
+# Set to true to abort role execution on syntax/path errors in unmanaged drop-ins under /etc/logrotate.d
+# Valid values: true, false
+logrotate_fail_on_foreign_verify_error: false

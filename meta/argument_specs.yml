@@ -185,3 +185,7 @@ argument_specs:
         description: "Whether a failed logrotate dry-run verification aborts the role run."
         type: bool
         default: true
+      logrotate_fail_on_foreign_verify_error:
+        description: "Whether a failed logrotate dry-run verification due ONLY to unmanaged foreign drop-in files aborts the role run."
+        type: bool
+        default: false
