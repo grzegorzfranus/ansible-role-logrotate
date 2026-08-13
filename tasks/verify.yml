@@ -14,50 +14,47 @@
   changed_when: false
   failed_when: false
 
-- name: Logrotate | verify | Extract dry-run error lines
-  ansible.builtin.set_fact:
+- name: Logrotate | verify | Evaluate dry-run verification results
+  vars:
     __logrotate_verify_errors: >-
       {{ __logrotate_verify.stderr | default('') | split('\n')
          | select('match', '^error:') | list }}
-
-- name: Logrotate | verify | Classify dry-run errors
-  ansible.builtin.set_fact:
     __logrotate_verify_is_permission_error: >-
       {{ (__logrotate_verify_errors | join(' '))
          is search('switching euid|Permission denied') }}
+  block:
+    - name: Logrotate | verify | Assert logrotate dry-run verification succeeded
+      ansible.builtin.assert:
+        that:
+          - __logrotate_verify.rc == 0
+        fail_msg: >-
+          logrotate verification failed!
+          Parsed errors: {{ __logrotate_verify_errors | join('; ') if (__logrotate_verify_errors | length > 0) else 'None extracted' }}.
+          {{ 'Hint: Insufficient privileges — the dry-run must run as root. '
+             ~ 'Ensure the role or playbook elevates with become.'
+             if (__logrotate_verify_is_permission_error | bool)
+             else 'Note: Configuration conflicts may originate from unmanaged distribution drop-ins in /etc/logrotate.d/. '
+                  ~ 'Consider adding conflicting drop-in names (e.g. \'postgresql-common\') to logrotate_purge_distro_configs.' }}
+          Full stderr output:
+          {{ __logrotate_verify.stderr | default(__logrotate_verify.stdout) }}
+        success_msg: "logrotate configuration verified successfully"
+      when:
+        - not ansible_check_mode
+        - logrotate_fail_on_verify_error | bool
 
-- name: Logrotate | verify | Assert logrotate dry-run verification succeeded
-  ansible.builtin.assert:
-    that:
-      - __logrotate_verify.rc == 0
-    fail_msg: >-
-      logrotate verification failed!
-      Parsed errors: {{ __logrotate_verify_errors | join('; ') if (__logrotate_verify_errors | length > 0) else 'None extracted' }}.
-      {{ 'Hint: Insufficient privileges — the dry-run must run as root. '
-         ~ 'Ensure the role or playbook elevates with become.'
-         if (__logrotate_verify_is_permission_error | bool)
-         else 'Note: Configuration conflicts may originate from unmanaged distribution drop-ins in /etc/logrotate.d/. '
-              ~ 'Consider adding conflicting drop-in names (e.g. ''postgresql-common'') to logrotate_purge_distro_configs.' }}
-      Full stderr output:
-      {{ __logrotate_verify.stderr | default(__logrotate_verify.stdout) }}
-    success_msg: "logrotate configuration verified successfully"
-  when:
-    - not ansible_check_mode
-    - logrotate_fail_on_verify_error | bool
-
-- name: Logrotate | verify | Report non-fatal logrotate dry-run failure
-  ansible.builtin.debug:
-    msg: >-
-      WARNING: logrotate dry-run verification reported errors, but logrotate_fail_on_verify_error is set to false.
-      Parsed errors: {{ __logrotate_verify_errors | join('; ') if (__logrotate_verify_errors | length > 0) else 'None extracted' }}.
-      {{ 'Hint: Insufficient privileges — the dry-run must run as root. '
-         ~ 'Ensure the role or playbook elevates with become.'
-         if (__logrotate_verify_is_permission_error | bool)
-         else 'Note: Configuration conflicts may originate from unmanaged distribution drop-ins in /etc/logrotate.d/. '
-              ~ 'Consider adding conflicting drop-in names to logrotate_purge_distro_configs.' }}
-      Full stderr output:
-      {{ __logrotate_verify.stderr | default(__logrotate_verify.stdout) }}
-  when:
-    - not ansible_check_mode
-    - not (logrotate_fail_on_verify_error | bool)
-    - __logrotate_verify.rc != 0
+    - name: Logrotate | verify | Report non-fatal logrotate dry-run failure
+      ansible.builtin.debug:
+        msg: >-
+          WARNING: logrotate dry-run verification reported errors, but logrotate_fail_on_verify_error is set to false.
+          Parsed errors: {{ __logrotate_verify_errors | join('; ') if (__logrotate_verify_errors | length > 0) else 'None extracted' }}.
+          {{ 'Hint: Insufficient privileges — the dry-run must run as root. '
+             ~ 'Ensure the role or playbook elevates with become.'
+             if (__logrotate_verify_is_permission_error | bool)
+             else 'Note: Configuration conflicts may originate from unmanaged distribution drop-ins in /etc/logrotate.d/. '
+                  ~ 'Consider adding conflicting drop-in names to logrotate_purge_distro_configs.' }}
+          Full stderr output:
+          {{ __logrotate_verify.stderr | default(__logrotate_verify.stdout) }}
+      when:
+        - not ansible_check_mode
+        - not (logrotate_fail_on_verify_error | bool)
+        - __logrotate_verify.rc != 0
