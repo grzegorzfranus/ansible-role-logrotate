@@ -69,3 +69,4 @@
               {{ {'task': ansible_failed_task.name | default(''),
                   'msg': ansible_failed_result.msg | default('')} | to_json }}
             mode: "0644"
+          changed_when: false
