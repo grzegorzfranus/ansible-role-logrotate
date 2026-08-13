@@ -1,0 +1,67 @@
+---
+# =============================================================================
+# Ansible Role: Logrotate - Molecule Convergence Playbook (Purge Conflict Scenario)
+# =============================================================================
+# Executes role without logrotate_purge_distro_configs on a host with a conflicting
+# drop-in. Expects verification failure in tasks/verify.yml and rescues it.
+# =============================================================================
+
+- name: molecule | Converge (Purge Conflict Expected Failure)
+  hosts: all
+  gather_facts: true
+
+  vars:
+    logrotate_purge_distro_configs: []
+    logrotate_fail_on_verify_error: true
+    logrotate_rules:
+      - name: sample
+        paths:
+          - /var/log/sample/*.log
+        options:
+          rotate: 3
+          weekly: true
+          compress: true
+          missingok: true
+          notifempty: true
+          create: "0640 root adm"
+        state: present
+
+  pre_tasks:
+    - name: Converge | Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 600
+      become: true
+      changed_when: false
+      when: ansible_os_family == 'Debian'
+
+    - name: Converge | Update dnf cache
+      ansible.builtin.dnf:
+        update_cache: true
+      become: true
+      changed_when: false
+      when: ansible_os_family == 'RedHat'
+
+    - name: Converge | Wait for systemd to complete initialization
+      ansible.builtin.command: systemctl is-system-running
+      register: __logrotate_systemctl_status
+      until: >
+        'running' in __logrotate_systemctl_status.stdout or
+        'degraded' in __logrotate_systemctl_status.stdout
+      retries: 30
+      delay: 5
+      when: ansible_service_mgr == 'systemd'
+      changed_when: false
+      failed_when: __logrotate_systemctl_status.rc > 1
+
+  tasks:
+    - name: Converge | Execute role expecting verify stage failure
+      block:
+        - name: Converge | Include logrotate role
+          ansible.builtin.include_role:
+            name: "{{ playbook_dir }}/../.."
+      rescue:
+        - name: Converge | Capture failure details for verification assertions
+          ansible.builtin.set_fact:
+            __logrotate_captured_failed_task: "{{ ansible_failed_task.name | default('') }}"
+            __logrotate_captured_failed_msg: "{{ ansible_failed_result.msg | default('') }}"

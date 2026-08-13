@@ -336,6 +336,11 @@ ansible-role-logrotate/
 │   │   ├── molecule.yml               # Test configuration
 │   │   ├── prepare.yml                # Test environment preparation
 │   │   └── verify.yml                 # Verification assertions
+│   ├── purge-conflict/
+│   │   ├── converge.yml               # Role execution expecting verify stage failure
+│   │   ├── molecule.yml               # Test configuration
+│   │   ├── prepare.yml                # Test environment preparation with conflicting drop-in
+│   │   └── verify.yml                 # Verification of failure task origin and error formatting
 │   └── uninstall/
 │       ├── converge.yml               # Role removal execution playbook
 │       ├── molecule.yml               # Test configuration

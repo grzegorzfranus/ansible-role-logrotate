@@ -13,4 +13,3 @@
   loop: "{{ logrotate_purge_distro_configs }}"
   loop_control:
     label: "{{ item }}"
-  when: logrotate_purge_distro_configs | length > 0

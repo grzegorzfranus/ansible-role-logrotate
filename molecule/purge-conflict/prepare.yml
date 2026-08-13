@@ -1,0 +1,65 @@
+---
+# =============================================================================
+# Ansible Role: Logrotate - Molecule Preparation Playbook (Purge Conflict Scenario)
+# =============================================================================
+# Prepares the test environment by creating an artificial conflicting distribution
+# drop-in file under /etc/logrotate.d/ to reproduce unpurged path conflicts.
+# =============================================================================
+
+- name: molecule | Prepare
+  hosts: all
+  gather_facts: false
+
+  tasks:
+    - name: Prepare | Fix /etc/shadow permissions
+      ansible.builtin.shell:
+        cmd: |
+          echo "Checking /etc/shadow permissions..."
+          ls -l /etc/shadow || true
+          chmod 0400 /etc/shadow || true
+          echo "Updated /etc/shadow permissions:"
+          ls -l /etc/shadow || true
+          echo ""
+      register: __logrotate_etc_shadow
+      changed_when: false
+
+    - name: Prepare | Verify shadow file permissions
+      ansible.builtin.debug:
+        var: __logrotate_etc_shadow.stdout
+
+    - name: Prepare | Check logrotate availability
+      ansible.builtin.shell:
+        cmd: |
+          if command -v logrotate >/dev/null 2>&1; then
+            echo "logrotate binary is available"
+          else
+            echo "logrotate not installed yet (expected before role execution)"
+          fi
+          echo ""
+      register: __logrotate_binary_check
+      changed_when: false
+
+    - name: Prepare | Show logrotate check results
+      ansible.builtin.debug:
+        var: __logrotate_binary_check.stdout
+
+    - name: Prepare | Ensure /etc/logrotate.d directory
+      ansible.builtin.file:
+        path: /etc/logrotate.d
+        state: directory
+        mode: "0755"
+        owner: root
+        group: root
+
+    - name: Prepare | Create artificial conflicting distribution drop-in
+      become: true
+      ansible.builtin.copy:
+        dest: /etc/logrotate.d/conflicting-distro
+        content: |
+          /var/log/sample/*.log {
+              weekly
+              rotate 4
+          }
+        mode: "0644"
+        owner: root
+        group: root

@@ -1,0 +1,35 @@
+---
+# =============================================================================
+# Ansible Role: Logrotate - Molecule Verification Playbook (Purge Conflict)
+# =============================================================================
+# Asserts that the role run failed strictly during tasks/verify.yml assertion,
+# that the error output extracted lines starting with error:, and that the hint
+# regarding logrotate_purge_distro_configs is included in the failure message.
+# =============================================================================
+
+- name: molecule | Verify Purge Conflict Failure Scenario
+  hosts: all
+  gather_facts: false
+
+  tasks:
+    - name: Verify | Assert failure originated from verify task instead of template render
+      ansible.builtin.assert:
+        that:
+          - "'verify' in __logrotate_captured_failed_task | lower"
+          - "'configure' not in __logrotate_captured_failed_task | lower"
+        fail_msg: "Failure originated from wrong task: {{ __logrotate_captured_failed_task }}"
+        success_msg: "Failure correctly originated from verify task: {{ __logrotate_captured_failed_task }}"
+
+    - name: Verify | Assert failure message extracts error line
+      ansible.builtin.assert:
+        that:
+          - "'error:' in __logrotate_captured_failed_msg"
+        fail_msg: "Failure message missing extracted error line: {{ __logrotate_captured_failed_msg }}"
+        success_msg: "Failure message correctly extracts error line"
+
+    - name: Verify | Assert failure message includes logrotate_purge_distro_configs hint
+      ansible.builtin.assert:
+        that:
+          - "'logrotate_purge_distro_configs' in __logrotate_captured_failed_msg"
+        fail_msg: "Failure message missing purge variable hint: {{ __logrotate_captured_failed_msg }}"
+        success_msg: "Failure message correctly includes logrotate_purge_distro_configs hint"
