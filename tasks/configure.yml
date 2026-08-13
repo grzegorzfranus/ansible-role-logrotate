@@ -5,6 +5,9 @@
 # Manages the main /etc/logrotate.conf configuration file.
 # =============================================================================
 
+# Note: validate is omitted here because logrotate.conf includes /etc/logrotate.d/*.
+# Running logrotate -d at this stage parses the full unharmonized drop-in tree before rules
+# are applied. Full verification is performed in tasks/verify.yml after applying rules.
 - name: Logrotate | configure | Render main /etc/logrotate.conf
   become: true
   ansible.builtin.template:
@@ -13,5 +16,4 @@
     owner: root
     group: root
     mode: "0644"
-    validate: "logrotate -d -s {{ logrotate_status_file }} %s"
     backup: true

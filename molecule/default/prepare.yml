@@ -62,3 +62,17 @@
         mode: "0755"
         owner: root
         group: root
+
+    # 4. Create artificial conflicting distribution drop-in
+    - name: Prepare | Create artificial conflicting distribution drop-in
+      become: true
+      ansible.builtin.copy:
+        dest: /etc/logrotate.d/conflicting-distro
+        content: |
+          /var/log/sample/*.log {
+              weekly
+              rotate 4
+          }
+        mode: "0644"
+        owner: root
+        group: root

@@ -18,6 +18,8 @@
   gather_facts: true
 
   vars:
+    logrotate_purge_distro_configs:
+      - conflicting-distro
     logrotate_rules:
       - name: sample
         paths:

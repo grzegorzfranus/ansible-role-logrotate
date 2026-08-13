@@ -97,6 +97,11 @@ logrotate_olddir_mode: "0755"
 # -----------------------------------------------------------------------------
 # 3. Per-Rule Management
 # -----------------------------------------------------------------------------
+# Names of distribution-provided drop-ins under /etc/logrotate.d to remove before
+# applying fleet rules, for paths superseded by logrotate_rules entries
+# Valid values: list of drop-in filename strings e.g. ["postgresql-common"]
+logrotate_purge_distro_configs: []
+
 # Define application-specific rules rendered into /etc/logrotate.d/<name>
 # Empty by default: the role manages no drop-in rules unless explicitly configured
 # Valid values: list of dictionaries conforming to the logrotate_rules schema
