@@ -382,7 +382,7 @@ All role-specific tags are prefixed with `logrotate_` to prevent collisions acro
 
 ## CI/CD Pipeline
 
-This repository uses centralized reusable workflows from `grzegorzfranus/github-workflows` (version `v3.0.1`) for quality assurance, linting, security scanning, and release publishing.
+This repository uses centralized reusable workflows from `grzegorzfranus/github-workflows` (branch `@main`) for quality assurance, linting, security scanning, and release publishing.
 
 ### CI Pipeline (`ansible-ci.yml`)
 
