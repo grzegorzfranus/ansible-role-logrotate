@@ -1,0 +1,15 @@
+---
+# =============================================================================
+# Ansible Role: Logrotate - Tasks: Purge Distro Drop-ins
+# =============================================================================
+# Removes distribution-provided logrotate drop-in files superseded by fleet rules.
+# =============================================================================
+
+- name: Logrotate | purge_distro | Remove superseded distribution drop-in configurations
+  become: true
+  ansible.builtin.file:
+    path: "{{ logrotate_d_directory_path }}/{{ item }}"
+    state: absent
+  loop: "{{ logrotate_purge_distro_configs }}"
+  loop_control:
+    label: "{{ item }}"

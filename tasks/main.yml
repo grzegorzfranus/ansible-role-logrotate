@@ -3,7 +3,7 @@
 # Ansible Role: Logrotate - Tasks: Main Entrypoint
 # =============================================================================
 # Main task entrypoint orchestrating role execution workflow.
-# Flow: include_vars → assert → [present: install → configure → rules → verify | absent: remove]
+# Flow: include_vars → assert → [present: install → configure → purge_distro → rules → verify | absent: remove]
 # =============================================================================
 
 - name: Logrotate | include_vars | Gather OS specific variables
@@ -46,6 +46,14 @@
       tags:
         - logrotate_setup
         - logrotate_configure
+
+    - name: Logrotate | purge_distro | Remove superseded distribution drop-in configurations
+      ansible.builtin.import_tasks: purge_distro.yml
+      when: logrotate_purge_distro_configs | length > 0
+      tags:
+        - logrotate_setup
+        - logrotate_configure
+        - logrotate_purge
 
     - name: Logrotate | rules | Apply present rules
       ansible.builtin.include_tasks:

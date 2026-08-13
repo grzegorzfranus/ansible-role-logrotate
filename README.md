@@ -106,6 +106,7 @@ logrotate_olddir_create_enabled: true
 logrotate_olddir_owner: "root"
 logrotate_olddir_group: "root"
 logrotate_olddir_mode: "0755"
+logrotate_purge_distro_configs: []
 logrotate_rules: []
 logrotate_state: "present"
 logrotate_remove_package: false
@@ -145,6 +146,7 @@ logrotate_fail_on_verify_error: true
 
 | Variable | Description | Default |
 |---|---|---|
+| `logrotate_purge_distro_configs` | Names of distribution-provided drop-ins under `/etc/logrotate.d` to remove before applying fleet rules | `[]` |
 | `logrotate_rules` | List of application-specific rule dictionaries rendered under `/etc/logrotate.d/<name>`. Empty by default: the role manages no drop-in rules unless explicitly configured | `[]` |
 
 #### Per-rule Item Fields (`logrotate_rules[]`)
@@ -283,6 +285,21 @@ View the current state and last rotation timestamp for all managed log files:
 cat /var/lib/logrotate/status
 ```
 
+### Handle "failed to validate" or "duplicate log entry" Errors
+
+If logrotate dry-run verification fails with duplicate log entry errors (or previously failed during template rendering with "Module failed: failed to validate"):
+
+- **Cause**: The main `/etc/logrotate.conf` configuration contains an `include /etc/logrotate.d` directive, causing `logrotate -d` dry-run validation to parse the full drop-in tree. Default distribution packages (such as `postgresql-common` or `dpkg`) may install drop-in files under `/etc/logrotate.d/` that duplicate log file path declarations managed by fleet rules.
+- **Diagnostic Command**: Run logrotate dry-run and filter errors:
+  ```bash
+  sudo logrotate -d -s /var/lib/logrotate/status /etc/logrotate.conf 2>&1 | grep '^error:'
+  ```
+- **Resolution**: Specify the names of the conflicting distribution drop-in files in `logrotate_purge_distro_configs` in your inventory or group variables:
+  ```yaml
+  logrotate_purge_distro_configs:
+    - "postgresql-common"
+  ```
+
 ## 📁 File Structure
 
 ```text
@@ -319,6 +336,11 @@ ansible-role-logrotate/
 │   │   ├── molecule.yml               # Test configuration
 │   │   ├── prepare.yml                # Test environment preparation
 │   │   └── verify.yml                 # Verification assertions
+│   ├── purge-conflict/
+│   │   ├── converge.yml               # Role execution expecting verify stage failure
+│   │   ├── molecule.yml               # Test configuration
+│   │   ├── prepare.yml                # Test environment preparation with conflicting drop-in
+│   │   └── verify.yml                 # Verification of failure task origin and error formatting
 │   └── uninstall/
 │       ├── converge.yml               # Role removal execution playbook
 │       ├── molecule.yml               # Test configuration
@@ -330,6 +352,7 @@ ansible-role-logrotate/
 │   ├── configure.yml                  # Main configuration management
 │   ├── install.yml                    # Package installation
 │   ├── main.yml                       # Main orchestration and flow control
+│   ├── purge_distro.yml               # Purge superseded distribution drop-in files
 │   ├── remove.yml                     # Role removal tasks
 │   ├── rules.yml                      # Drop-in rules management
 │   └── verify.yml                     # Configuration verification (dry-run)
@@ -352,6 +375,7 @@ All role-specific tags are prefixed with `logrotate_` to prevent collisions acro
 | `logrotate_validate` | Variable validation and configuration assertions |
 | `logrotate_install` | Package installation tasks |
 | `logrotate_configure` | Main `/etc/logrotate.conf` configuration tasks |
+| `logrotate_purge` | Purge superseded distribution-provided drop-in files under `/etc/logrotate.d` |
 | `logrotate_rules` | Drop-in rule management under `/etc/logrotate.d` |
 | `logrotate_verify` | Dry-run configuration verification tasks |
 | `logrotate_remove` | Tasks executing role removal and cleanup when `logrotate_state` is `absent` |

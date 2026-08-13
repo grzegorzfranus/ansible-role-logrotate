@@ -1,16 +1,9 @@
 ---
 # =============================================================================
-# Ansible Role: Logrotate - Molecule Preparation Playbook
+# Ansible Role: Logrotate - Molecule Preparation Playbook (Purge Conflict Scenario)
 # =============================================================================
-# This playbook prepares the test environment before running the role:
-# - Fixes critical file permissions
-# - Performs basic environment checks
-# - Ensures required directories exist
-#
-# Flow:
-# 1. Fix system file permissions
-# 2. Validate environment state
-# 3. Ensure required directories
+# Prepares the test environment by creating an artificial conflicting distribution
+# drop-in file under /etc/logrotate.d/ to reproduce unpurged path conflicts.
 # =============================================================================
 
 - name: molecule | Prepare
@@ -18,8 +11,6 @@
   gather_facts: false
 
   tasks:
-    # 1. Fix system file permissions
-    # Justification: Use shell module to run multi-command inspection and chmod reset on /etc/shadow.
     - name: Prepare | Fix /etc/shadow permissions
       ansible.builtin.shell:
         cmd: |
@@ -36,8 +27,6 @@
       ansible.builtin.debug:
         var: __logrotate_etc_shadow.stdout
 
-    # 2. Validate environment state
-    # Justification: Use shell module to inspect binary availability before role execution.
     - name: Prepare | Check logrotate availability
       ansible.builtin.shell:
         cmd: |
@@ -54,7 +43,6 @@
       ansible.builtin.debug:
         var: __logrotate_binary_check.stdout
 
-    # 3. Ensure required directories
     - name: Prepare | Ensure /etc/logrotate.d directory
       ansible.builtin.file:
         path: /etc/logrotate.d
@@ -63,7 +51,6 @@
         owner: root
         group: root
 
-    # 4. Create artificial conflicting distribution drop-in
     - name: Prepare | Create artificial conflicting distribution drop-in
       become: true
       ansible.builtin.copy:

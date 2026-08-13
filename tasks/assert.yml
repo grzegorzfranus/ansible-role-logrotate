@@ -71,6 +71,26 @@
 # -----------------------------------------------------------------------------
 # Validates per-application log rotation rule parameters and options.
 
+- name: Logrotate | assert | Validate logrotate_purge_distro_configs list structure
+  ansible.builtin.assert:
+    that:
+      - logrotate_purge_distro_configs is defined
+      - logrotate_purge_distro_configs is sequence
+    fail_msg: "logrotate_purge_distro_configs must be a list"
+    success_msg: "logrotate_purge_distro_configs list structure validated"
+
+- name: Logrotate | assert | Validate each logrotate_purge_distro_configs entry is a non-empty filename without path separators
+  ansible.builtin.assert:
+    that:
+      - item is string
+      - item | length > 0
+      - item is not search('/')
+    fail_msg: "Every entry in logrotate_purge_distro_configs must be a non-empty drop-in filename string without '/' path separators"
+    success_msg: "Drop-in filename '{{ item }}' validated in logrotate_purge_distro_configs"
+  loop: "{{ logrotate_purge_distro_configs }}"
+  loop_control:
+    label: "{{ item }}"
+
 - name: Logrotate | assert | Validate logrotate_rules list structure
   ansible.builtin.assert:
     that:

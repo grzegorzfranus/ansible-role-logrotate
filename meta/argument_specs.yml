@@ -85,6 +85,11 @@ argument_specs:
         description: "Permissions mode octal string for auto-created olddir directories."
         type: str
         default: "0755"
+      logrotate_purge_distro_configs:
+        description: "Names of distribution-provided drop-in files under /etc/logrotate.d to remove."
+        type: list
+        elements: str
+        default: []
       logrotate_rules:
         description: "List of per-application log rotation rule configurations."
         type: list

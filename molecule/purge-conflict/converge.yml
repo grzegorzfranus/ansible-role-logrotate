@@ -1,25 +1,18 @@
 ---
 # =============================================================================
-# Ansible Role: Logrotate - Molecule Convergence Playbook
+# Ansible Role: Logrotate - Molecule Convergence Playbook (Purge Conflict Scenario)
 # =============================================================================
-# This playbook executes the main role functionality in the test environment.
-# It performs the following steps:
-# - Updates package repositories
-# - Waits for system initialization
-# - Applies the logrotate role
-#
-# Flow:
-# 1. Pre-Tasks Setup (package cache update, systemd readiness)
-# 2. Role Execution
+# Executes role without logrotate_purge_distro_configs on a host with a conflicting
+# drop-in. Expects verification failure in tasks/verify.yml and rescues it.
 # =============================================================================
 
-- name: molecule | Converge
+- name: molecule | Converge (Purge Conflict Expected Failure)
   hosts: all
   gather_facts: true
 
   vars:
-    logrotate_purge_distro_configs:
-      - conflicting-distro
+    logrotate_purge_distro_configs: []
+    logrotate_fail_on_verify_error: true
     logrotate_rules:
       - name: sample
         paths:
@@ -33,11 +26,7 @@
           create: "0640 root adm"
         state: present
 
-  # -----------------------------------------------------------------------------
-  # 1. Pre-Tasks Setup
-  # -----------------------------------------------------------------------------
   pre_tasks:
-    # Package Cache Update (Debian family)
     - name: Converge | Update apt cache
       ansible.builtin.apt:
         update_cache: true
@@ -46,7 +35,6 @@
       changed_when: false
       when: ansible_os_family == 'Debian'
 
-    # Package Cache Update (RedHat family)
     - name: Converge | Update dnf cache
       ansible.builtin.dnf:
         update_cache: true
@@ -54,7 +42,6 @@
       changed_when: false
       when: ansible_os_family == 'RedHat'
 
-    # System Initialization
     - name: Converge | Wait for systemd to complete initialization
       ansible.builtin.command: systemctl is-system-running
       register: __logrotate_systemctl_status
@@ -67,10 +54,19 @@
       changed_when: false
       failed_when: __logrotate_systemctl_status.rc > 1
 
-  # -----------------------------------------------------------------------------
-  # 2. Role Execution
-  # -----------------------------------------------------------------------------
   tasks:
-    - name: Converge | Include logrotate role
-      ansible.builtin.include_role:
-        name: "{{ playbook_dir }}/../.."
+    - name: Converge | Execute role expecting verify stage failure
+      block:
+        - name: Converge | Include logrotate role
+          ansible.builtin.include_role:
+            name: "{{ playbook_dir }}/../.."
+      rescue:
+        - name: Converge | Save failure details to file for verify playbook
+          become: true
+          ansible.builtin.copy:
+            dest: /tmp/logrotate_failure_captured.json
+            content: >-
+              {{ {'task': ansible_failed_task.name | default(''),
+                  'msg': ansible_failed_result.msg | default('')} | to_json }}
+            mode: "0644"
+          changed_when: false

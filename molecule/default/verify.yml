@@ -106,6 +106,18 @@
         fail_msg: "Sample drop-in rule file is missing under {{ logrotate_d_directory_path }}"
         success_msg: "Sample drop-in rule file exists under {{ logrotate_d_directory_path }}"
 
+    - name: Verify | Check conflicting distribution drop-in file is removed
+      ansible.builtin.stat:
+        path: "{{ logrotate_d_directory_path }}/conflicting-distro"
+      register: __logrotate_conflicting_distro_stat
+
+    - name: Verify | Assert conflicting distribution drop-in file was purged
+      ansible.builtin.assert:
+        that:
+          - not __logrotate_conflicting_distro_stat.stat.exists
+        fail_msg: "Conflicting drop-in /etc/logrotate.d/conflicting-distro still exists"
+        success_msg: "Conflicting drop-in /etc/logrotate.d/conflicting-distro was purged"
+
     # -------------------------------------------------------------------------
     # 5. Configuration Dry-run Validation
     # -------------------------------------------------------------------------
@@ -119,9 +131,10 @@
       changed_when: false
       failed_when: false
 
-    - name: Verify | Assert logrotate dry-run returned acceptable code
+    - name: Verify | Assert logrotate dry-run returned acceptable code and no duplicate log entries
       ansible.builtin.assert:
         that:
           - __logrotate_dry_run_result.rc == 0
-        fail_msg: "logrotate reported errors: {{ __logrotate_dry_run_result.stderr | default(__logrotate_dry_run_result.stdout) }}"
-        success_msg: "logrotate parsed configuration successfully"
+          - "'duplicate log entry' not in __logrotate_dry_run_result.stderr"
+        fail_msg: "logrotate reported errors or duplicate log entry: {{ __logrotate_dry_run_result.stderr | default(__logrotate_dry_run_result.stdout) }}"
+        success_msg: "logrotate parsed configuration successfully without duplicate log entry errors"
