@@ -8,7 +8,6 @@
 # =============================================================================
 
 - name: Logrotate | remove | Remove managed drop-in rules
-  become: true
   ansible.builtin.file:
     path: "{{ logrotate_d_directory_path }}/{{ item.name }}"
     state: absent
@@ -17,7 +16,6 @@
     label: "{{ item.name }}"
 
 - name: Logrotate | remove | Uninstall logrotate package
-  become: true
   ansible.builtin.package:
     name: "{{ logrotate_package_name }}"
     state: absent

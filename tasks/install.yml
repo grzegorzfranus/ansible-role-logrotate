@@ -6,7 +6,6 @@
 # =============================================================================
 
 - name: Logrotate | install | Ensure logrotate present
-  become: true
   ansible.builtin.package:
     name: "{{ logrotate_package_name }}"
     state: present

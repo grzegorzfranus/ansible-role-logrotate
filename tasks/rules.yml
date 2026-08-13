@@ -15,7 +15,6 @@
     - rule.options.olddir is defined
 
 - name: Logrotate | rules | Create olddir when missing
-  become: true
   ansible.builtin.file:
     path: "{{ rule.options.olddir }}"
     state: directory
@@ -30,7 +29,6 @@
     - not (__logrotate_rule_olddir_stat.stat.exists | default(false))
 
 - name: Logrotate | rules | Render rule (present)
-  become: true
   ansible.builtin.template:
     src: "logrotate_rule.j2"
     dest: "{{ logrotate_d_directory_path }}/{{ rule.name }}"
@@ -42,7 +40,6 @@
   when: rule.state | default('present') == 'present'
 
 - name: Logrotate | rules | Remove rule (absent)
-  become: true
   ansible.builtin.file:
     path: "{{ logrotate_d_directory_path }}/{{ rule.name }}"
     state: absent

@@ -363,6 +363,9 @@ ansible-role-logrotate/
     └── main.yml                       # Common variables/constants
 ```
 
+> [!NOTE]
+> The `molecule/default/converge.yml` playbook connects as an unprivileged user (`remote_user: molecule`, `become: false`) to ensure all role tasks requiring root privileges explicitly elevate via `become: true`. This serves as a continuous regression guard in CI against unprivileged task execution.
+
 ## 🏷️ Tags
 
 All role-specific tags are prefixed with `logrotate_` to prevent collisions across playbooks.

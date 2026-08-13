@@ -9,7 +9,6 @@
 # Running logrotate -d at this stage parses the full unharmonized drop-in tree before rules
 # are applied. Full verification is performed in tasks/verify.yml after applying rules.
 - name: Logrotate | configure | Render main /etc/logrotate.conf
-  become: true
   ansible.builtin.template:
     src: "logrotate.conf.j2"
     dest: "{{ logrotate_main_config_path }}"

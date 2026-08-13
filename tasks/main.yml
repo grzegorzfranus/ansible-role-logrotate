@@ -33,6 +33,7 @@
 
 - name: "Logrotate | main | Execute lifecycle tasks for state: present"
   when: logrotate_state | lower == 'present'
+  become: true
   block:
     - name: Logrotate | install | Install dependencies
       ansible.builtin.import_tasks: install.yml
@@ -103,6 +104,7 @@
 
 - name: "Logrotate | main | Execute removal tasks for state: absent"
   ansible.builtin.import_tasks: remove.yml
+  become: true
   when: logrotate_state | lower == 'absent'
   tags:
     - logrotate_remove
