@@ -59,6 +59,7 @@
           /var/log/sample/*.log {
               weekly
               rotate 4
+              missingok
           }
         mode: "0644"
         owner: root

@@ -63,12 +63,13 @@
 
     - name: Verify | Set captured foreign result facts
       ansible.builtin.set_fact:
-        __logrotate_foreign_stderr: "{{ (__logrotate_foreign_file.content | b64decode | from_json).stderr }}"
+        __logrotate_foreign_warning_msg: "{{ (__logrotate_foreign_file.content | b64decode | from_json).warning_msg }}"
 
-    - name: Verify | Assert foreign warning names foreign drop-in file
+    - name: Verify | Assert role output for foreign conflicts
       ansible.builtin.assert:
         that:
-          - "'foreign-beta' in __logrotate_foreign_stderr"
-          - "'duplicate log entry' in __logrotate_foreign_stderr"
-        fail_msg: "Foreign warning missing expected foreign file or duplicate error: {{ __logrotate_foreign_stderr }}"
-        success_msg: "Foreign warning correctly names foreign drop-in file foreign-beta"
+          - "'foreign-beta' in __logrotate_foreign_warning_msg"
+          - "'This role does not manage these file(s)' in __logrotate_foreign_warning_msg"
+          - "'Parsed errors: error: foreign-beta' in __logrotate_foreign_warning_msg"
+        fail_msg: "Foreign warning role output assertion failed: {{ __logrotate_foreign_warning_msg }}"
+        success_msg: "Role correctly issued foreign warning output for unmanaged drop-ins including foreign-beta"

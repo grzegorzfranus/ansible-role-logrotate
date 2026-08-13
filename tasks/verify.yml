@@ -108,6 +108,7 @@
           Parsed errors: {{ __logrotate_foreign_errors_list | join('; ') }}.
           Full stderr output:
           {{ __logrotate_verify.stderr | default(__logrotate_verify.stdout) }}
+      register: __logrotate_foreign_warning
       when:
         - not ansible_check_mode
         - not (logrotate_fail_on_foreign_verify_error | bool)

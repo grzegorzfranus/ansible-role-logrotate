@@ -82,15 +82,6 @@
     logrotate_rules: []
 
   pre_tasks:
-    - name: Converge | Clean up previous scenario drop-ins
-      become: true
-      ansible.builtin.file:
-        path: "{{ item }}"
-        state: absent
-      loop:
-        - /etc/logrotate.d/sample
-        - /etc/logrotate.d/conflicting-distro
-
     - name: Converge | Create two unmanaged conflicting drop-ins
       become: true
       ansible.builtin.copy:
@@ -125,7 +116,6 @@
       ansible.builtin.copy:
         dest: /tmp/logrotate_foreign_captured.json
         content: >-
-          {{ {'rc': __logrotate_verify.rc | default(0),
-              'stderr': __logrotate_verify.stderr | default('')} | to_json }}
+          {{ {'warning_msg': __logrotate_foreign_warning.msg | default('')} | to_json }}
         mode: "0644"
       changed_when: false
