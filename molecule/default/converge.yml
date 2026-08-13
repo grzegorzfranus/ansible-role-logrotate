@@ -43,6 +43,17 @@
   # 1. Pre-Tasks Setup
   # -----------------------------------------------------------------------------
   pre_tasks:
+    - name: Converge | Verify unprivileged connection user
+      ansible.builtin.command: id -un
+      register: __logrotate_connection_user
+      changed_when: false
+
+    - name: Converge | Assert connecting user is molecule
+      ansible.builtin.assert:
+        that:
+          - __logrotate_connection_user.stdout == 'molecule'
+        fail_msg: "Connecting user is '{{ __logrotate_connection_user.stdout }}', expected 'molecule'"
+
     # Package Cache Update (Debian family)
     - name: Converge | Update apt cache
       ansible.builtin.apt:

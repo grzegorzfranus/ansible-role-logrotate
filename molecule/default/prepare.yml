@@ -68,7 +68,6 @@
 
     # 4. Create artificial conflicting distribution drop-in
     - name: Prepare | Create artificial conflicting distribution drop-in
-      become: true
       ansible.builtin.copy:
         dest: /etc/logrotate.d/conflicting-distro
         content: |
