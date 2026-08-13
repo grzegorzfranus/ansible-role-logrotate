@@ -6,11 +6,14 @@
 # - Fixes critical file permissions
 # - Performs basic environment checks
 # - Ensures required directories exist
+# - Creates a non-root sudoer user for privilege escalation testing
 #
 # Flow:
 # 1. Fix system file permissions
 # 2. Validate environment state
 # 3. Ensure required directories
+# 4. Create artificial conflicting drop-in
+# 5. Create non-root sudoer user
 # =============================================================================
 
 - name: molecule | Prepare
@@ -76,3 +79,22 @@
         mode: "0644"
         owner: root
         group: root
+
+    # 5. Create non-root sudoer user for privilege escalation testing
+    # The converge playbook connects as this user with become: false,
+    # so any role task that forgets to declare become will fail.
+    - name: Prepare | Create molecule test user
+      ansible.builtin.user:
+        name: molecule
+        state: present
+        shell: /bin/bash
+        create_home: true
+
+    - name: Prepare | Grant molecule user passwordless sudo
+      ansible.builtin.copy:
+        dest: /etc/sudoers.d/molecule
+        content: "molecule ALL=(ALL) NOPASSWD: ALL\n"
+        mode: "0440"
+        owner: root
+        group: root
+        validate: "visudo -cf %s"

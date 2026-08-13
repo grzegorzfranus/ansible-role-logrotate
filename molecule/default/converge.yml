@@ -8,6 +8,10 @@
 # - Waits for system initialization
 # - Applies the logrotate role
 #
+# The converge connects as a non-root sudoer user (molecule) with become: false.
+# This ensures that any role task missing explicit privilege escalation will fail,
+# catching the class of bug where per-task become: true is accidentally omitted.
+#
 # Flow:
 # 1. Pre-Tasks Setup (package cache update, systemd readiness)
 # 2. Role Execution
@@ -16,6 +20,8 @@
 - name: molecule | Converge
   hosts: all
   gather_facts: true
+  remote_user: molecule
+  become: false
 
   vars:
     logrotate_purge_distro_configs:

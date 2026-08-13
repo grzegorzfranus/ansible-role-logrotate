@@ -6,7 +6,6 @@
 # =============================================================================
 
 - name: Logrotate | purge_distro | Remove superseded distribution drop-in configurations
-  become: true
   ansible.builtin.file:
     path: "{{ logrotate_d_directory_path }}/{{ item }}"
     state: absent
