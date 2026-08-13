@@ -19,9 +19,51 @@
     __logrotate_verify_errors: >-
       {{ (__logrotate_verify.stderr | default('')).splitlines()
          | select('match', '^error:') | list }}
+    __logrotate_managed_files: >-
+      {{ (logrotate_rules | default([]) | map(attribute='name') | list)
+         + [(logrotate_main_config_path | default('/etc/logrotate.conf')) | basename] }}
     __logrotate_verify_is_permission_error: >-
       {{ (__logrotate_verify_errors | join(' '))
          is search('switching euid|Permission denied') }}
+    __logrotate_verify_own_errors: >-
+      {% set own = [] %}
+      {% for err in __logrotate_verify_errors %}
+        {% set m1 = err | regex_search('^error:\\s+(\\S+?):\\d+\\s', '\\1') %}
+        {% set m2 = err | regex_search('^error:\\s+found error in file\\s+([^,]+),', '\\1') %}
+        {% set raw = (m1 | first) if (m1 is defined and m1 is sequence and m1 | length > 0) else ((m2 | first) if (m2 is defined and m2 is sequence and m2 | length > 0) else '') %}
+        {% set owner = raw | basename %}
+        {% if owner == '' or owner in __logrotate_managed_files %}
+          {% set _ = own.append(err) %}
+        {% endif %}
+      {% endfor %}
+      {{ own | to_json }}
+    __logrotate_verify_foreign_errors: >-
+      {% set foreign = [] %}
+      {% for err in __logrotate_verify_errors %}
+        {% set m1 = err | regex_search('^error:\\s+(\\S+?):\\d+\\s', '\\1') %}
+        {% set m2 = err | regex_search('^error:\\s+found error in file\\s+([^,]+),', '\\1') %}
+        {% set raw = (m1 | first) if (m1 is defined and m1 is sequence and m1 | length > 0) else ((m2 | first) if (m2 is defined and m2 is sequence and m2 | length > 0) else '') %}
+        {% set owner = raw | basename %}
+        {% if owner != '' and owner not in __logrotate_managed_files %}
+          {% set _ = foreign.append(err) %}
+        {% endif %}
+      {% endfor %}
+      {{ foreign | to_json }}
+    __logrotate_verify_foreign_files: >-
+      {% set files = [] %}
+      {% for err in __logrotate_verify_errors %}
+        {% set m1 = err | regex_search('^error:\\s+(\\S+?):\\d+\\s', '\\1') %}
+        {% set m2 = err | regex_search('^error:\\s+found error in file\\s+([^,]+),', '\\1') %}
+        {% set raw = (m1 | first) if (m1 is defined and m1 is sequence and m1 | length > 0) else ((m2 | first) if (m2 is defined and m2 is sequence and m2 | length > 0) else '') %}
+        {% set owner = raw | basename %}
+        {% if owner != '' and owner not in __logrotate_managed_files and owner not in files %}
+          {% set _ = files.append(owner) %}
+        {% endif %}
+      {% endfor %}
+      {{ files | to_json }}
+    __logrotate_own_errors_list: "{{ __logrotate_verify_own_errors | from_json }}"
+    __logrotate_foreign_errors_list: "{{ __logrotate_verify_foreign_errors | from_json }}"
+    __logrotate_foreign_files_list: "{{ __logrotate_verify_foreign_files | from_json }}"
   block:
     - name: Logrotate | verify | Assert logrotate dry-run verification succeeded
       ansible.builtin.assert:
@@ -29,7 +71,7 @@
           - __logrotate_verify.rc == 0
         fail_msg: >-
           logrotate verification failed!
-          Parsed errors: {{ __logrotate_verify_errors | join('; ') if (__logrotate_verify_errors | length > 0) else 'None extracted' }}.
+          Parsed errors: {{ __logrotate_own_errors_list | join('; ') if (__logrotate_own_errors_list | length > 0) else 'None extracted' }}.
           {{ 'Hint: Insufficient privileges — the dry-run must run as root. '
              ~ 'Ensure the role or playbook elevates with become.'
              if (__logrotate_verify_is_permission_error | bool)
@@ -41,12 +83,13 @@
       when:
         - not ansible_check_mode
         - logrotate_fail_on_verify_error | bool
+        - (__logrotate_own_errors_list | length > 0) or (__logrotate_foreign_errors_list | length == 0)
 
     - name: Logrotate | verify | Report non-fatal logrotate dry-run failure
       ansible.builtin.debug:
         msg: >-
           WARNING: logrotate dry-run verification reported errors, but logrotate_fail_on_verify_error is set to false.
-          Parsed errors: {{ __logrotate_verify_errors | join('; ') if (__logrotate_verify_errors | length > 0) else 'None extracted' }}.
+          Parsed errors: {{ __logrotate_own_errors_list | join('; ') if (__logrotate_own_errors_list | length > 0) else 'None extracted' }}.
           {{ 'Hint: Insufficient privileges — the dry-run must run as root. '
              ~ 'Ensure the role or playbook elevates with become.'
              if (__logrotate_verify_is_permission_error | bool)
@@ -58,3 +101,39 @@
         - not ansible_check_mode
         - not (logrotate_fail_on_verify_error | bool)
         - __logrotate_verify.rc != 0
+        - (__logrotate_own_errors_list | length > 0) or (__logrotate_foreign_errors_list | length == 0)
+
+    - name: Logrotate | verify | Assert logrotate dry-run verification succeeded for foreign drop-ins
+      ansible.builtin.assert:
+        that:
+          - __logrotate_verify.rc == 0
+        fail_msg: >-
+          logrotate verification failed due to unmanaged foreign drop-in file(s): {{ __logrotate_foreign_files_list | join(', ') }}.
+          This role does not manage these file(s). logrotate will skip the offending file(s) at rotation time.
+          Consider adding conflicting drop-in names to logrotate_purge_distro_configs if you want this role to remove them.
+          Parsed errors: {{ __logrotate_foreign_errors_list | join('; ') }}.
+          Full stderr output:
+          {{ __logrotate_verify.stderr | default(__logrotate_verify.stdout) }}
+        success_msg: "logrotate configuration verified successfully"
+      when:
+        - not ansible_check_mode
+        - logrotate_fail_on_foreign_verify_error | bool
+        - __logrotate_verify.rc != 0
+        - __logrotate_own_errors_list | length == 0
+        - __logrotate_foreign_errors_list | length > 0
+
+    - name: Logrotate | verify | Report foreign logrotate dry-run verification warnings
+      ansible.builtin.debug:
+        msg: >-
+          WARNING: logrotate dry-run verification reported errors in unmanaged drop-in file(s): {{ __logrotate_foreign_files_list | join(', ') }}.
+          This role does not manage these file(s). logrotate will skip the offending file(s) at rotation time.
+          Consider adding conflicting drop-in names to logrotate_purge_distro_configs if you want this role to remove them.
+          Parsed errors: {{ __logrotate_foreign_errors_list | join('; ') }}.
+          Full stderr output:
+          {{ __logrotate_verify.stderr | default(__logrotate_verify.stdout) }}
+      when:
+        - not ansible_check_mode
+        - not (logrotate_fail_on_foreign_verify_error | bool)
+        - __logrotate_verify.rc != 0
+        - __logrotate_own_errors_list | length == 0
+        - __logrotate_foreign_errors_list | length > 0

@@ -70,3 +70,62 @@
                   'msg': ansible_failed_result.msg | default('')} | to_json }}
             mode: "0644"
           changed_when: false
+
+- name: molecule | Converge (Foreign Conflict Expected Warning)
+  hosts: all
+  gather_facts: false
+
+  vars:
+    logrotate_purge_distro_configs: []
+    logrotate_fail_on_verify_error: true
+    logrotate_fail_on_foreign_verify_error: false
+    logrotate_rules: []
+
+  pre_tasks:
+    - name: Converge | Clean up previous scenario drop-ins
+      become: true
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/logrotate.d/sample
+        - /etc/logrotate.d/conflicting-distro
+
+    - name: Converge | Create two unmanaged conflicting drop-ins
+      become: true
+      ansible.builtin.copy:
+        dest: "{{ item.path }}"
+        content: "{{ item.content }}"
+        mode: "0644"
+        owner: root
+        group: root
+      loop:
+        - path: /etc/logrotate.d/foreign-alpha
+          content: |
+            /var/log/foreign-test/*.log {
+                weekly
+                rotate 4
+                missingok
+            }
+        - path: /etc/logrotate.d/foreign-beta
+          content: |
+            /var/log/foreign-test/*.log {
+                weekly
+                rotate 4
+                missingok
+            }
+
+  tasks:
+    - name: Converge | Include logrotate role expecting success with foreign warning
+      ansible.builtin.include_role:
+        name: "{{ playbook_dir }}/../.."
+
+    - name: Converge | Save foreign result details for verify playbook
+      become: true
+      ansible.builtin.copy:
+        dest: /tmp/logrotate_foreign_captured.json
+        content: >-
+          {{ {'rc': __logrotate_verify.rc | default(0),
+              'stderr': __logrotate_verify.stderr | default('')} | to_json }}
+        mode: "0644"
+      changed_when: false

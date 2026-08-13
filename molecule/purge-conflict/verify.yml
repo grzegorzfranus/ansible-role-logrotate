@@ -54,3 +54,21 @@
           - "'logrotate_purge_distro_configs' in __logrotate_captured_failed_msg"
         fail_msg: "Failure message missing purge variable hint: {{ __logrotate_captured_failed_msg }}"
         success_msg: "Failure message correctly includes logrotate_purge_distro_configs hint"
+
+    - name: Verify | Read captured foreign result file
+      become: true
+      ansible.builtin.slurp:
+        src: /tmp/logrotate_foreign_captured.json
+      register: __logrotate_foreign_file
+
+    - name: Verify | Set captured foreign result facts
+      ansible.builtin.set_fact:
+        __logrotate_foreign_stderr: "{{ (__logrotate_foreign_file.content | b64decode | from_json).stderr }}"
+
+    - name: Verify | Assert foreign warning names foreign drop-in file
+      ansible.builtin.assert:
+        that:
+          - "'foreign-beta' in __logrotate_foreign_stderr"
+          - "'duplicate log entry' in __logrotate_foreign_stderr"
+        fail_msg: "Foreign warning missing expected foreign file or duplicate error: {{ __logrotate_foreign_stderr }}"
+        success_msg: "Foreign warning correctly names foreign drop-in file foreign-beta"
