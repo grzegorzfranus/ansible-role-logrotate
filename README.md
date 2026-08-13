@@ -332,7 +332,7 @@ ansible-role-logrotate/
 │   └── main.yml                       # Role Galaxy metadata
 ├── molecule/
 │   ├── default/
-│   │   ├── converge.yml               # Role execution playbook
+│   │   ├── converge.yml               # Role execution playbook (connects as non-root user 'molecule' with become: false to test privilege escalation)
 │   │   ├── molecule.yml               # Test configuration
 │   │   ├── prepare.yml                # Test environment preparation
 │   │   └── verify.yml                 # Verification assertions
