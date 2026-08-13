@@ -61,7 +61,11 @@
           ansible.builtin.include_role:
             name: "{{ playbook_dir }}/../.."
       rescue:
-        - name: Converge | Capture failure details for verification assertions
-          ansible.builtin.set_fact:
-            __logrotate_captured_failed_task: "{{ ansible_failed_task.name | default('') }}"
-            __logrotate_captured_failed_msg: "{{ ansible_failed_result.msg | default('') }}"
+        - name: Converge | Save failure details to file for verify playbook
+          become: true
+          ansible.builtin.copy:
+            dest: /tmp/logrotate_failure_captured.json
+            content: >-
+              {{ {'task': ansible_failed_task.name | default(''),
+                  'msg': ansible_failed_result.msg | default('')} | to_json }}
+            mode: "0644"

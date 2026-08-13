@@ -12,6 +12,17 @@
   gather_facts: false
 
   tasks:
+    - name: Verify | Read captured failure details file
+      become: true
+      ansible.builtin.slurp:
+        src: /tmp/logrotate_failure_captured.json
+      register: __logrotate_captured_file
+
+    - name: Verify | Set captured failure facts
+      ansible.builtin.set_fact:
+        __logrotate_captured_failed_task: "{{ (__logrotate_captured_file.content | b64decode | from_json).task }}"
+        __logrotate_captured_failed_msg: "{{ (__logrotate_captured_file.content | b64decode | from_json).msg }}"
+
     - name: Verify | Assert failure originated from verify task instead of template render
       ansible.builtin.assert:
         that:
