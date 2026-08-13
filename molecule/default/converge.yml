@@ -53,6 +53,7 @@
         that:
           - __logrotate_connection_user.stdout == 'molecule'
         fail_msg: "Connecting user is '{{ __logrotate_connection_user.stdout }}', expected 'molecule'"
+        success_msg: "Connecting user verified as 'molecule'"
 
     # Package Cache Update (Debian family)
     - name: Converge | Update apt cache
