@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0](https://github.com/grzegorzfranus/ansible-role-logrotate/compare/v2.1.0...v2.2.0) (2026-08-13)
+
+
+### Features
+
+* move full-tree validation to verify stage and purge superseded distro drop-ins ([#28](https://github.com/grzegorzfranus/ansible-role-logrotate/issues/28)) ([915aae4](https://github.com/grzegorzfranus/ansible-role-logrotate/commit/915aae42c0905c7be3c18e99547df3350da1e4c7))
+
 ## [2.1.0](https://github.com/grzegorzfranus/ansible-role-logrotate/compare/v2.0.0...v2.1.0) (2026-08-08)
 
 
