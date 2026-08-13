@@ -22,6 +22,7 @@
       ansible.builtin.set_fact:
         __logrotate_captured_failed_task: "{{ (__logrotate_captured_file.content | b64decode | from_json).task }}"
         __logrotate_captured_failed_msg: "{{ (__logrotate_captured_file.content | b64decode | from_json).msg }}"
+        __logrotate_captured_parsed_msg: "{{ ((__logrotate_captured_file.content | b64decode | from_json).msg).split('Full stderr output:')[0] }}"
 
     - name: Verify | Assert failure originated from verify task instead of template render
       ansible.builtin.assert:
@@ -34,9 +35,18 @@
     - name: Verify | Assert failure message extracts error line
       ansible.builtin.assert:
         that:
-          - "'error:' in __logrotate_captured_failed_msg"
-        fail_msg: "Failure message missing extracted error line: {{ __logrotate_captured_failed_msg }}"
-        success_msg: "Failure message correctly extracts error line"
+          - "'error:' in __logrotate_captured_parsed_msg"
+          - "'None extracted' not in __logrotate_captured_parsed_msg"
+          - "'duplicate log entry' in __logrotate_captured_parsed_msg"
+        fail_msg: "Failure message missing extracted error line or contains 'None extracted': {{ __logrotate_captured_parsed_msg }}"
+        success_msg: "Failure message correctly extracts error line without 'None extracted'"
+
+    - name: Verify | Assert failure message contains no literal backslashes
+      ansible.builtin.assert:
+        that:
+          - 'not (__logrotate_captured_failed_msg is search("\\\\"))'
+        fail_msg: "Failure message contains literal backslashes: {{ __logrotate_captured_failed_msg }}"
+        success_msg: "Failure message contains no literal backslashes"
 
     - name: Verify | Assert failure message includes logrotate_purge_distro_configs hint
       ansible.builtin.assert:

@@ -17,7 +17,7 @@
 - name: Logrotate | verify | Evaluate dry-run verification results
   vars:
     __logrotate_verify_errors: >-
-      {{ __logrotate_verify.stderr | default('') | split('\n')
+      {{ (__logrotate_verify.stderr | default('')).splitlines()
          | select('match', '^error:') | list }}
     __logrotate_verify_is_permission_error: >-
       {{ (__logrotate_verify_errors | join(' '))
@@ -33,8 +33,8 @@
           {{ 'Hint: Insufficient privileges — the dry-run must run as root. '
              ~ 'Ensure the role or playbook elevates with become.'
              if (__logrotate_verify_is_permission_error | bool)
-             else 'Note: Configuration conflicts may originate from unmanaged distribution drop-ins in /etc/logrotate.d/. '
-                  ~ 'Consider adding conflicting drop-in names (e.g. \'postgresql-common\') to logrotate_purge_distro_configs.' }}
+             else "Note: Configuration conflicts may originate from unmanaged distribution drop-ins in /etc/logrotate.d/. "
+                  ~ "Consider adding conflicting drop-in names (e.g. 'postgresql-common') to logrotate_purge_distro_configs." }}
           Full stderr output:
           {{ __logrotate_verify.stderr | default(__logrotate_verify.stdout) }}
         success_msg: "logrotate configuration verified successfully"
@@ -50,8 +50,8 @@
           {{ 'Hint: Insufficient privileges — the dry-run must run as root. '
              ~ 'Ensure the role or playbook elevates with become.'
              if (__logrotate_verify_is_permission_error | bool)
-             else 'Note: Configuration conflicts may originate from unmanaged distribution drop-ins in /etc/logrotate.d/. '
-                  ~ 'Consider adding conflicting drop-in names to logrotate_purge_distro_configs.' }}
+             else "Note: Configuration conflicts may originate from unmanaged distribution drop-ins in /etc/logrotate.d/. "
+                  ~ "Consider adding conflicting drop-in names to logrotate_purge_distro_configs." }}
           Full stderr output:
           {{ __logrotate_verify.stderr | default(__logrotate_verify.stdout) }}
       when:
