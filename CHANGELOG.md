@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.0](https://github.com/grzegorzfranus/ansible-role-logrotate/compare/v2.2.2...v2.3.0) (2026-08-13)
+
+
+### Features
+
+* **38:** attribute dry-run errors to owning file and warn on foreign conflicts ([#40](https://github.com/grzegorzfranus/ansible-role-logrotate/issues/40)) ([b5d7bde](https://github.com/grzegorzfranus/ansible-role-logrotate/commit/b5d7bdeee3cb24aab11b2dfbb667dee609f579ee))
+
 ## [2.2.2](https://github.com/grzegorzfranus/ansible-role-logrotate/compare/v2.2.1...v2.2.2) (2026-08-13)
 
 
