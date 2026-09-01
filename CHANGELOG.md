@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.0](https://github.com/grzegorzfranus/ansible-role-logrotate/compare/v2.3.0...v2.4.0) (2026-09-01)
+
+
+### Features
+
+* **logrotate:** make config file backups configurable ([#42](https://github.com/grzegorzfranus/ansible-role-logrotate/issues/42)) ([#43](https://github.com/grzegorzfranus/ansible-role-logrotate/issues/43)) ([8c657a9](https://github.com/grzegorzfranus/ansible-role-logrotate/commit/8c657a931404ad8c0208aa648c1811b5e89b5077))
+
 ## [2.3.0](https://github.com/grzegorzfranus/ansible-role-logrotate/compare/v2.2.2...v2.3.0) (2026-08-13)
 
 
