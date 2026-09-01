@@ -35,6 +35,14 @@ logrotate_manage_main_conf: true
 # Valid values: true, false
 logrotate_os_support_check_enabled: true
 
+# Whether the role keeps a timestamped backup of a configuration file before overwriting it
+# Applies to the main /etc/logrotate.conf and to every drop-in rule the role renders.
+# Set to false where the configuration is generated from version-controlled inventory: the
+# previous content is recoverable from source control, and a backup left in /etc/logrotate.d
+# still matches the include glob, so a stale copy can keep rotating logs on its own.
+# Valid values: true, false
+logrotate_backup_enabled: true
+
 # -----------------------------------------------------------------------------
 # 2. Main Logrotate Configuration
 # -----------------------------------------------------------------------------
