@@ -19,6 +19,14 @@
     fail_msg: "logrotate_os_support_check_enabled must be a boolean (true or false)"
     success_msg: "logrotate_os_support_check_enabled validated: {{ logrotate_os_support_check_enabled }}"
 
+- name: Logrotate | assert | Validate logrotate_backup_enabled boolean format
+  ansible.builtin.assert:
+    that:
+      - logrotate_backup_enabled is defined
+      - logrotate_backup_enabled is boolean
+    fail_msg: "logrotate_backup_enabled must be a boolean (true or false)"
+    success_msg: "logrotate_backup_enabled validated: {{ logrotate_backup_enabled }}"
+
 - name: Logrotate | assert | Validate target operating system is supported
   ansible.builtin.assert:
     that:
