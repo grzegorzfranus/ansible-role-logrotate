@@ -92,6 +92,7 @@ The role comes pre-configured with safe, production-ready defaults:
 logrotate_status_file: "/var/lib/logrotate/status"
 logrotate_manage_main_conf: true
 logrotate_os_support_check_enabled: true
+logrotate_backup_enabled: true
 logrotate_frequency: "weekly"
 logrotate_rotate: 4
 logrotate_compress: false
@@ -123,6 +124,7 @@ logrotate_fail_on_foreign_verify_error: false
 | `logrotate_status_file` | Path to logrotate status file used for validation and execution runs | `/var/lib/logrotate/status` |
 | `logrotate_manage_main_conf` | Whether this role should manage the main `/etc/logrotate.conf` file | `true` |
 | `logrotate_os_support_check_enabled` | Whether the role validates that the target host runs a supported distribution | `true` |
+| `logrotate_backup_enabled` | Whether a timestamped backup is kept before a configuration file is overwritten | `true` |
 
 ### 2. Main Logrotate Configuration
 

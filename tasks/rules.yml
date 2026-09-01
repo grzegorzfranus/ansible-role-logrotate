@@ -36,7 +36,7 @@
     group: root
     mode: "0644"
     validate: "logrotate -d -s {{ logrotate_status_file }} %s"
-    backup: true
+    backup: "{{ logrotate_backup_enabled | bool }}"
   when: rule.state | default('present') == 'present'
 
 - name: Logrotate | rules | Remove rule (absent)

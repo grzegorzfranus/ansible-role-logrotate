@@ -25,6 +25,10 @@ argument_specs:
         description: "Whether the role validates that the target host runs a supported distribution."
         type: bool
         default: true
+      logrotate_backup_enabled:
+        description: "Whether the role keeps a timestamped backup of a configuration file before overwriting it."
+        type: bool
+        default: true
       logrotate_frequency:
         description: "Global log rotation frequency for main configuration."
         type: str
