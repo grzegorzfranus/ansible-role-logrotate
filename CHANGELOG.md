@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.2](https://github.com/grzegorzfranus/ansible-role-logrotate/compare/v2.4.1...v2.4.2) (2026-10-22)
+
+
+### Documentation
+
+* **readme:** describe the current CI and release pipelines ([#48](https://github.com/grzegorzfranus/ansible-role-logrotate/issues/48)) ([#49](https://github.com/grzegorzfranus/ansible-role-logrotate/issues/49)) ([7f42a45](https://github.com/grzegorzfranus/ansible-role-logrotate/commit/7f42a453f31ba0e0b6d731fd831fec3459567218))
+
 ## [2.4.1](https://github.com/grzegorzfranus/ansible-role-logrotate/compare/v2.4.0...v2.4.1) (2026-10-22)
 
 
